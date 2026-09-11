@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace MiaCourt.Editor
 {
@@ -105,6 +106,8 @@ namespace MiaCourt.Editor
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = true;
             PlayerSettings.colorSpace = ColorSpace.Linear;
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneWindows64, false);
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneWindows64, new[] { GraphicsDeviceType.Direct3D11 });
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Standalone, ScriptingImplementation.Mono2x);
             PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Standalone, "com.miacourt.basketball");
             PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "com.miacourt.basketball");
@@ -132,7 +135,9 @@ namespace MiaCourt.Editor
             PlayerSettings.SetScriptingBackend(target, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCodeGeneration(target, UnityEditor.Build.Il2CppCodeGeneration.OptimizeSize);
             PlayerSettings.SetManagedStrippingLevel(target, ManagedStrippingLevel.Low);
-            PlayerSettings.stripEngineCode = true;
+            // CreatePrimitive(Quad/Sphere) adds MeshCollider/SphereCollider by name. Engine stripping
+            // drops those classes, CourtBuilder.Start throws, and no players are spawned.
+            PlayerSettings.stripEngineCode = false;
             PlayerSettings.stripUnusedMeshComponents = true;
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             PlayerSettings.WebGL.decompressionFallback = true;

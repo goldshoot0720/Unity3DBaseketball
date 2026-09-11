@@ -34,6 +34,7 @@ namespace MiaCourt
             // Animate composes with this instead of overwriting it, which would face-plant the cat.
             visualBase = visual.localRotation;
             Renderer[] renderers = model.GetComponentsInChildren<Renderer>();
+            if (renderers == null || renderers.Length == 0) return;
             Bounds bounds = renderers[0].bounds;
             foreach (Renderer r in renderers) bounds.Encapsulate(r.bounds);
             float scale = 2.35f / Mathf.Max(.1f, bounds.size.y);

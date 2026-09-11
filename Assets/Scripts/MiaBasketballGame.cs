@@ -601,7 +601,8 @@ namespace MiaCourt
             {
                 trajectory[i] = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 trajectory[i].name = "Trajectory dot";
-                Destroy(trajectory[i].GetComponent<Collider>());
+                var dotCollider = trajectory[i].GetComponent<Collider>();
+                if (dotCollider != null) Destroy(dotCollider);
                 trajectory[i].transform.localScale = Vector3.one*.085f;
                 trajectory[i].GetComponent<Renderer>().sharedMaterial = mat;
                 trajectory[i].GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;

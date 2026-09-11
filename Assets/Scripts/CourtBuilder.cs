@@ -12,8 +12,10 @@ namespace MiaCourt
 
         public static Material Material(string name, Color color, float smoothness = .25f)
         {
-            var m = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = name, color = color };
-            m.SetFloat("_Smoothness", smoothness);
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) shader = Shader.Find("Sprites/Default");
+            var m = new Material(shader) { name = name, color = color };
+            if (shader != null && shader.name.Contains("Lit")) m.SetFloat("_Smoothness", smoothness);
             return m;
         }
 
@@ -164,6 +166,9 @@ namespace MiaCourt
             ball.name = "Basketball";
             ball.transform.localScale = Vector3.one * BasketballRules.BallRadius * 2;
             ball.GetComponent<Renderer>().sharedMaterial = Material("Pebbled orange leather", new Color(.91f, .36f, .065f), .22f);
+            var ballCollider = ball.GetComponent<Collider>();
+            if (ballCollider == null) ballCollider = ball.AddComponent<SphereCollider>();
+            ballCollider.sharedMaterial = BounceMaterial(.70f);
             var body = ball.AddComponent<Rigidbody>();
             body.mass = .62f;
             // BasketballRules.LaunchVelocity solves a drag-free arc, and the on-screen aim guide draws
@@ -173,7 +178,6 @@ namespace MiaCourt
             body.angularDamping = .25f;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            ball.GetComponent<Collider>().sharedMaterial = BounceMaterial(.70f);
             for (int i = 0; i < 3; i++)
             {
                 var seam = Ring("Ball seam", ball.transform, Vector3.zero, .501f, .022f, new Color(.13f, .075f, .04f), false);

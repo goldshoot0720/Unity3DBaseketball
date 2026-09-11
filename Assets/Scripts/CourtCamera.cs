@@ -16,7 +16,8 @@ namespace MiaCourt
             cam = GetComponent<Camera>();
             var bg = GameObject.CreatePrimitive(PrimitiveType.Quad);
             bg.name = "Original reference backdrop - left / center / right";
-            Destroy(bg.GetComponent<Collider>());
+            var bgCollider = bg.GetComponent<Collider>();
+            if (bgCollider != null) Destroy(bgCollider);
             bg.transform.SetParent(transform,false);
             bg.transform.localPosition = new Vector3(0,0,120);
             plate = bg.transform;
