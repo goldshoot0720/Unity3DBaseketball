@@ -1,0 +1,56 @@
+using UnityEngine;
+
+namespace MiaCourt
+{
+    /// <summary>Geometry and timing shared by gameplay, previews and validation.</summary>
+    public static class BasketballRules
+    {
+        public const float HalfLength = 12.5f;
+        public const float HalfWidth = 6.4f;
+        public const float HoopX = 10.9f;
+        public const float HoopHeight = 3.05f;
+        public const float RimRadius = .62f;
+        public const float BallRadius = .20f;
+        public const float ThreePointDistance = 6.6f;
+        public const float MatchSeconds = 180f;
+        public const float PossessionSeconds = 18f;
+        public const float Gravity = 14f;
+
+        public static Vector3 HoopFor(int attackingTeam) => new Vector3(attackingTeam == 0 ? HoopX : -HoopX, HoopHeight, 0);
+
+        public static int ShotValue(Vector3 origin, Vector3 hoop)
+        {
+            origin.y = hoop.y = 0;
+            return Vector3.Distance(origin, hoop) >= ThreePointDistance ? 3 : 2;
+        }
+
+        public static Vector3 LaunchVelocity(Vector3 start, Vector3 end, float apex)
+        {
+            apex = Mathf.Max(apex, Mathf.Max(start.y, end.y) + .1f);
+            float upTime = Mathf.Sqrt(2f * (apex - start.y) / Gravity);
+            float downTime = Mathf.Sqrt(2f * (apex - end.y) / Gravity);
+            Vector3 velocity = (end - start) / (upTime + downTime);
+            velocity.y = Gravity * upTime;
+            return velocity;
+        }
+
+        public static bool CrossedHoop(Vector3 previous, Vector3 current, Vector3 hoop)
+        {
+            if (previous.y <= hoop.y || current.y > hoop.y || current.y >= previous.y) return false;
+            float fraction = (previous.y - hoop.y) / (previous.y - current.y);
+            Vector3 crossing = Vector3.Lerp(previous, current, fraction);
+            crossing.y = hoop.y;
+            return (crossing - hoop).sqrMagnitude < Mathf.Pow(RimRadius - BallRadius - .025f, 2);
+        }
+
+        public static float ReleaseQuality(float charge) => Mathf.Clamp01(1f - Mathf.Abs(charge - .68f) * 2.7f);
+
+        public static Vector3 ClampToCourt(Vector3 position)
+        {
+            position.x = Mathf.Clamp(position.x, -HalfLength + .55f, HalfLength - .55f);
+            position.z = Mathf.Clamp(position.z, -HalfWidth + .55f, HalfWidth - .55f);
+            position.y = 0;
+            return position;
+        }
+    }
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "character": "MiaByBy3D",
+    "sourceTriangles": 1961311,
+    "gameTriangles": 78451,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "MiaBuBu3D",
+    "sourceTriangles": 1955496,
+    "gameTriangles": 78219,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "GuguGaga3D",
+    "sourceTriangles": 1921939,
+    "gameTriangles": 76877,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "TeethMei3D",
+    "sourceTriangles": 1949395,
+    "gameTriangles": 77975,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "FishMei",
+    "sourceTriangles": 1973404,
+    "gameTriangles": 78936,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "Huang3D",
+    "sourceTriangles": 1958391,
+    "gameTriangles": 78335,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "XiaoTu3D",
+    "sourceTriangles": 1908284,
+    "gameTriangles": 76331,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "FengHsin3D",
+    "sourceTriangles": 1980721,
+    "gameTriangles": 79228,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "HsinFeng3D",
+    "sourceTriangles": 1966774,
+    "gameTriangles": 78670,
+    "animations": "Procedural root motion; source has no rig or animation."
+  },
+  {
+    "character": "Tu3D",
+    "sourceTriangles": 1957508,
+    "gameTriangles": 78300,
+    "animations": "Procedural root motion; source has no rig or animation."
+  }
+]

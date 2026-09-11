@@ -1,0 +1,1 @@
+Original character GLB files live here locally and are converted with `Tools/prepare_characters.py`. They are not committed (each file is ~55 MB). Game-ready FBX and textures are under `Assets/Art/Characters/`.

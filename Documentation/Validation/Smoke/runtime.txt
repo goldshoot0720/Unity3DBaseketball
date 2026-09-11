@@ -1,0 +1,15 @@
+PASS home opens
+PASS GLB character mapping
+PASS character selection swaps human and CPU
+PASS new match reset
+PASS left reference camera
+PASS pause freezes clock
+FAIL real physics perfect two-point shot scores
+PASS one basket counted only once
+PASS scoring transfers possession to opponent
+FAIL real physics perfect three-point shot scores
+PASS tie starts overtime
+PASS winner receives result screen
+PASS replay resets scores and overtime
+PASS return to character selection
+Runtime errors: 0
