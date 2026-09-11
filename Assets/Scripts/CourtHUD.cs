@@ -27,7 +27,9 @@ namespace MiaCourt
             if (game == null || game.players == null) return;
             if (label == null)
             {
-                font = Font.CreateDynamicFontFromOSFont(new[] { "Microsoft JhengHei", "Noto Sans CJK TC", "Arial" }, 24);
+                font = Resources.Load<Font>("NotoSansTC-Regular");
+                if (font == null)
+                    font = Font.CreateDynamicFontFromOSFont(new[] { "Microsoft JhengHei", "Noto Sans CJK TC", "Arial" }, 24);
                 label = new GUIStyle(GUI.skin.label) { font = font, wordWrap = true };
                 button = new GUIStyle(GUI.skin.button) { font = font, fontSize = 20, alignment = TextAnchor.MiddleCenter };
                 button.normal.background = button.hover.background = button.active.background = Texture2D.whiteTexture;
@@ -52,31 +54,41 @@ namespace MiaCourt
 
         void Home()
         {
-            Fill(new Rect(24, 28, 430, height - 56), ink);
-            Text(new Rect(48, 40, 390, 78), "喵喵\n街頭籃球", 36, paper, FontStyle.Bold);
-            Text(new Rect(48, 122, 380, 36), "台北夕陽球場 · 選球員來一對一", 18, paper);
-            Text(new Rect(48, 162, 380, 26), "你的球員", 18, paper);
-            const int cols = 3;
-            const float bw = 114;
-            const float bh = 38;
-            const float gap = 8;
+            if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Tab)
+                Event.current.Use();
+            Fill(new Rect(24, 20, 430, height - 40), ink);
+            Text(new Rect(48, 28, 390, 70), "喵喵\n街頭籃球", 34, paper, FontStyle.Bold);
+            Text(new Rect(48, 102, 380, 28), "台北夕陽球場 · 選你和對手", 18, paper);
             int previousSize = button.fontSize;
             button.fontSize = 18;
+            if (Button(new Rect(48, 136, 175, 42), "你  " + MiaCourtAssets.NameFor(game.selectedCharacter), !game.pickingOpponent))
+                game.pickingOpponent = false;
+            if (Button(new Rect(231, 136, 175, 42), "對手  " + MiaCourtAssets.NameFor(game.selectedOpponent),
+                    game.pickingOpponent, CourtBuilder.Coral))
+                game.pickingOpponent = true;
+            Text(new Rect(48, 182, 380, 22), game.pickingOpponent ? "點角色當對手 · Tab 改選你" : "點角色當你 · Tab 改選對手",
+                16, game.pickingOpponent ? CourtBuilder.Coral : CourtBuilder.Mint);
+            const int cols = 3;
+            const float bw = 114;
+            const float bh = 36;
+            const float gap = 8;
+            float gridY = 208;
             for (int i = 0; i < MiaCourtAssets.CharacterCount; i++)
             {
                 int col = i % cols;
                 int row = i / cols;
-                var rect = new Rect(48 + col * (bw + gap), 192 + row * (bh + gap), bw, bh);
-                if (Button(rect, MiaCourtAssets.NameFor(i), i == game.selectedCharacter))
-                    game.SelectCharacter(i);
+                var rect = new Rect(48 + col * (bw + gap), gridY + row * (bh + gap), bw, bh);
+                bool you = i == game.selectedCharacter;
+                bool cpu = i == game.selectedOpponent;
+                if (Button(rect, MiaCourtAssets.NameFor(i), you || cpu, you ? CourtBuilder.Mint : CourtBuilder.Coral))
+                    game.SelectRosterSlot(i);
             }
             button.fontSize = previousSize;
             int rows = (MiaCourtAssets.CharacterCount + cols - 1) / cols;
-            float after = 192 + rows * (bh + gap) + 4;
-            Text(new Rect(48, after, 380, 28), "對手  " + MiaCourtAssets.NameFor(game.OpponentIndex), 18, CourtBuilder.Coral);
-            if (Button(new Rect(48, after + 36, 358, 50), "開始比賽   Enter", true)) game.StartMatch();
-            Text(new Rect(48, after + 94, 358, 28), "每場 3 分鐘 · 平手加賽", 18, paper);
-            Text(new Rect(48, after + 126, 358, 80), "WASD 移動 · Shift 衝刺\n按住空白鍵蓄力，放開投籃\n防守時按 E 或空白鍵抄截", 17, paper);
+            float after = gridY + rows * (bh + gap) + 6;
+            if (Button(new Rect(48, after, 358, 48), "開始比賽   Enter", true)) game.StartMatch();
+            Text(new Rect(48, after + 56, 358, 24), "每場 3 分鐘 · 平手加賽", 17, paper);
+            Text(new Rect(48, after + 84, 358, 72), "WASD 移動 · Shift 衝刺\n按住空白鍵蓄力，放開投籃\n防守時按 E 或空白鍵抄截", 16, paper);
             SoundButton();
         }
 
@@ -167,11 +179,11 @@ namespace MiaCourt
                 game.sound.ToggleMute();
         }
 
-        bool Button(Rect rect, string text, bool primary = false)
+        bool Button(Rect rect, string text, bool primary = false, Color accent = default)
         {
             buttons.Add(rect);
             Color before = GUI.backgroundColor;
-            GUI.backgroundColor = primary ? CourtBuilder.Mint : paper;
+            GUI.backgroundColor = primary ? (accent.a > 0 ? accent : CourtBuilder.Mint) : paper;
             bool clicked = GUI.Button(rect, text, button);
             GUI.backgroundColor = before;
             return clicked;

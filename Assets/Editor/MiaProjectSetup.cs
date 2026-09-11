@@ -195,6 +195,33 @@ namespace MiaCourt.Editor
             Debug.Log("MIA_ANDROID_BUILD_PASS " + summary);
         }
 
+        /// <summary>Gzip WebGL player with decompression fallback, for GitHub Releases and static hosting.</summary>
+        [MenuItem("Mia Court/Build WebGL")]
+        public static void BuildWebGL()
+        {
+            Configure();
+            ValidateSettings();
+            MiaCourtSetup.ValidateRules();
+            const string output = "Builds/WebGL";
+            if (Directory.Exists(output)) Directory.Delete(output, true);
+            Directory.CreateDirectory(output);
+            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { ScenePath },
+                locationPathName = output,
+                target = BuildTarget.WebGL,
+                options = BuildOptions.None
+            });
+            string summary = "Result: " + report.summary.result + "\nErrors: " + report.summary.totalErrors +
+                "\nWarnings: " + report.summary.totalWarnings + "\nBytes: " + report.summary.totalSize +
+                "\nTime: " + report.summary.totalTime + "\n";
+            Directory.CreateDirectory("Documentation/Validation");
+            File.WriteAllText("Documentation/Validation/webgl-build.txt", summary);
+            if (report.summary.result != BuildResult.Succeeded)
+                throw new InvalidOperationException("WebGL build failed. " + summary);
+            Debug.Log("MIA_WEBGL_BUILD_PASS " + summary);
+        }
+
         [MenuItem("Mia Court/Validate URP")]
         public static void ValidateSettings()
         {

@@ -172,6 +172,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.miacourt.basketball
     Standalone: com.miacourt.basketball
+    WebGL: com.miacourt.basketball
   buildNumber:
     Standalone: 0
     VisionOS: 0
@@ -192,7 +193,7 @@ PlayerSettings:
   CreateWallpaper: 0
   androidSplitApplicationBinary: 0
   keepLoadedShadersAlive: 0
-  StripUnusedMeshComponents: 0
+  StripUnusedMeshComponents: 1
   strictShaderVariantMatching: 0
   VertexChannelCompressionMask: 4054
   iPhoneSdkVersion: 988
@@ -577,8 +578,8 @@ PlayerSettings:
   webGLWasmArithmeticExceptions: 0
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
-  webGLDecompressionFallback: 0
-  webGLInitialMemorySize: 32
+  webGLDecompressionFallback: 1
+  webGLInitialMemorySize: 512
   webGLMaximumMemorySize: 2048
   webGLMemoryGrowthMode: 2
   webGLMemoryLinearGrowthStep: 16
@@ -593,16 +594,20 @@ PlayerSettings:
   webProgressiveAssetLoading: 0
   scriptingDefineSymbols:
     Standalone: SENTIS_ANALYTICS_ENABLED;APP_UI_EDITOR_ONLY
+    WebGL: SENTIS_ANALYTICS_ENABLED
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
     Android: 1
     Standalone: 0
+    WebGL: 1
   il2cppCompilerConfiguration: {}
-  il2cppCodeGeneration: {}
+  il2cppCodeGeneration:
+    WebGL: 1
   il2cppLTOMode: {}
   il2cppStacktraceInformation: {}
-  managedStrippingLevel: {}
+  managedStrippingLevel:
+    WebGL: 1
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1
   allowUnsafeCode: 0

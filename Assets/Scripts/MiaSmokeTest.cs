@@ -38,10 +38,13 @@ namespace MiaCourt
             Check(game.players[0].displayName=="喵白白" && game.players[1].displayName=="喵布布","GLB character mapping");
             yield return Capture("01-home.png");
             game.SelectCharacter(3);
-            Check(game.players[0].displayName=="牙妹" && game.players[1].displayName=="魚妹","selecting 牙妹");
-            game.SelectCharacter(9);
-            Check(game.players[0].displayName=="塗董" && game.players[1].displayName=="喵白白","selecting 塗董 wraps opponent");
+            Check(game.players[0].displayName=="牙妹" && game.players[1].displayName=="喵布布","player pick keeps opponent");
+            game.SelectOpponent(9);
+            Check(game.players[0].displayName=="牙妹" && game.players[1].displayName=="塗董","opponent pick is independent");
+            game.SelectOpponent(3);
+            Check(game.players[0].displayName=="塗董" && game.players[1].displayName=="牙妹","picking the other slot swaps");
             game.SelectCharacter(0);
+            game.SelectOpponent(1);
             Check(game.players[0].displayName=="喵白白" && game.players[1].displayName=="喵布布","default pairing restored");
             game.StartMatch();
             game.countdown=0;

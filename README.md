@@ -1,6 +1,6 @@
 # 喵喵街頭籃球
 
-台北夕陽球場上的一對一街頭籃球。Windows 與 Android 安裝檔放在 [Releases](https://github.com/goldshoot0720/Unity3DBaseketball/releases)。
+台北夕陽球場上的一對一街頭籃球。Windows、WebGL 安裝檔放在 [Releases](https://github.com/goldshoot0720/Unity3DBaseketball/releases)。
 
 ## 操作
 
@@ -26,6 +26,7 @@
 Unity 6000.6.0f1、URP。編輯器選單：
 
 - `Mia Court / Build Windows game` → `Builds/Windows/MiaBasketball.exe`
+- `Mia Court / Build WebGL` → `Builds/WebGL`
 - `Mia Court / Build Android APK` → `Builds/Android/MiaBasketball.apk`
 
-Android 為 ARM64 IL2CPP，使用 Unity 偵錯金鑰簽署，可側載。
+WebGL 為 Gzip，內建解壓縮，可用任何靜態網站伺服器或本機 `python -m http.server` 開啟（不要直接雙擊 `index.html`）。Android 為 ARM64 IL2CPP，使用 Unity 偵錯金鑰簽署，可側載。

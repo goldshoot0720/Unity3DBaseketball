@@ -16,7 +16,9 @@ namespace MiaCourt
         public CourtAudio sound;
         public CourtHUD hud;
         public int selectedCharacter;
-        public int OpponentIndex => (selectedCharacter + 1) % MiaCourtAssets.CharacterCount;
+        public int selectedOpponent = 1;
+        public bool pickingOpponent;
+        public int OpponentIndex => selectedOpponent;
         public int holder = -1;
         public readonly int[] scores = new int[2];
         public readonly int[] attempts = new int[2];
@@ -73,8 +75,13 @@ namespace MiaCourt
 
         void Start()
         {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Application.targetFrameRate = -1;
+            QualitySettings.vSyncCount = 0;
+#else
             Application.targetFrameRate = 60;
             QualitySettings.vSyncCount = 1;
+#endif
             Physics.gravity = Vector3.down * BasketballRules.Gravity;
             Time.fixedDeltaTime = 1f / 60f;
             CourtBuilder.Build(this);
@@ -109,12 +116,65 @@ namespace MiaCourt
 
         public void SelectCharacter(int index)
         {
-            if (State != MatchState.Home || index < 0 || index >= MiaCourtAssets.CharacterCount) return;
-            if (index == selectedCharacter) return;
-            selectedCharacter = index;
+            if (!TryAssign(index, true)) return;
             ApplyCharacters();
             ShowHome();
             sound.Play(CourtSound.Select);
+        }
+
+        public void SelectOpponent(int index)
+        {
+            if (!TryAssign(index, false)) return;
+            ApplyCharacters();
+            ShowHome();
+            sound.Play(CourtSound.Select);
+        }
+
+        public void SelectRosterSlot(int index)
+        {
+            if (pickingOpponent) SelectOpponent(index);
+            else SelectCharacter(index);
+        }
+
+        public void CycleSelection(int delta)
+        {
+            if (State != MatchState.Home || delta == 0) return;
+            int blocked = pickingOpponent ? selectedCharacter : selectedOpponent;
+            int current = pickingOpponent ? selectedOpponent : selectedCharacter;
+            int next = current;
+            int count = MiaCourtAssets.CharacterCount;
+            for (int step = 0; step < count; step++)
+            {
+                next = (next + delta % count + count) % count;
+                if (next != blocked) break;
+            }
+            SelectRosterSlot(next);
+        }
+
+        bool TryAssign(int index, bool toPlayer)
+        {
+            if (State != MatchState.Home || index < 0 || index >= MiaCourtAssets.CharacterCount) return false;
+            if (toPlayer)
+            {
+                if (index == selectedCharacter) return false;
+                if (index == selectedOpponent)
+                {
+                    selectedOpponent = selectedCharacter;
+                    selectedCharacter = index;
+                    return true;
+                }
+                selectedCharacter = index;
+                return true;
+            }
+            if (index == selectedOpponent) return false;
+            if (index == selectedCharacter)
+            {
+                selectedCharacter = selectedOpponent;
+                selectedOpponent = index;
+                return true;
+            }
+            selectedOpponent = index;
+            return true;
         }
 
         public void ShowHome()
@@ -201,17 +261,18 @@ namespace MiaCourt
             if (Input.GetKeyDown(KeyCode.M)) sound.ToggleMute();
             if (State == MatchState.Home)
             {
-                if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
-                    SelectCharacter((selectedCharacter + MiaCourtAssets.CharacterCount - 1) % MiaCourtAssets.CharacterCount);
-                if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
-                    SelectCharacter((selectedCharacter + 1) % MiaCourtAssets.CharacterCount);
+                if (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) ||
+                    Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+                    pickingOpponent = !pickingOpponent;
+                if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A)) CycleSelection(-1);
+                if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) CycleSelection(1);
                 for (int i = 0; i < MiaCourtAssets.CharacterCount && i < 9; i++)
                     if (Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1 + i)) ||
                         Input.GetKeyDown((KeyCode)((int)KeyCode.Keypad1 + i)))
-                        SelectCharacter(i);
+                        SelectRosterSlot(i);
                 if (MiaCourtAssets.CharacterCount > 9 &&
                     (Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0)))
-                    SelectCharacter(9);
+                    SelectRosterSlot(9);
                 if (Input.GetKeyDown(KeyCode.Return)) StartMatch();
                 foreach (CatPlayer p in players) p.Animate(Time.deltaTime, p.team == holder, true);
                 UpdateHeldBall();

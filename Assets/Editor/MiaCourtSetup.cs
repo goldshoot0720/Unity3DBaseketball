@@ -43,6 +43,7 @@ namespace MiaCourt.Editor
                 if (command == "setup") MiaProjectSetup.Configure();
                 else if (command == "build") MiaProjectSetup.BuildWindows();
                 else if (command == "android") MiaProjectSetup.BuildAndroid();
+                else if (command == "webgl") MiaProjectSetup.BuildWebGL();
                 else if (command == "validate") { MiaProjectSetup.ValidateSettings(); ValidateRules(); }
                 else if (command == "play") EditorApplication.isPlaying = true;
                 else if (command == "stop") EditorApplication.isPlaying = false;
@@ -116,7 +117,40 @@ namespace MiaCourt.Editor
             PlayerSettings.allowedAutorotateToLandscapeRight = true;
             PlayerSettings.allowedAutorotateToPortrait = true;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            ConfigureWebGL();
             EditorSettings.defaultBehaviorMode = EditorBehaviorMode.Mode3D;
+        }
+
+        /// <summary>
+        /// Gzip plus decompression fallback so a GitHub Release zip works on any static host
+        /// that does not send Content-Encoding. DiskSize (not LTO) keeps the first web ship tractable.
+        /// </summary>
+        public static void ConfigureWebGL()
+        {
+            var target = UnityEditor.Build.NamedBuildTarget.WebGL;
+            PlayerSettings.SetApplicationIdentifier(target, "com.miacourt.basketball");
+            PlayerSettings.SetScriptingBackend(target, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetIl2CppCodeGeneration(target, UnityEditor.Build.Il2CppCodeGeneration.OptimizeSize);
+            PlayerSettings.SetManagedStrippingLevel(target, ManagedStrippingLevel.Low);
+            PlayerSettings.stripEngineCode = true;
+            PlayerSettings.stripUnusedMeshComponents = true;
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+            PlayerSettings.WebGL.decompressionFallback = true;
+            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
+            PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
+            PlayerSettings.WebGL.dataCaching = true;
+            PlayerSettings.WebGL.wasm2023 = true;
+            PlayerSettings.WebGL.initialMemorySize = 512;
+            PlayerSettings.WebGL.maximumMemorySize = 2048;
+            PlayerSettings.WebGL.memoryGrowthMode = WebGLMemoryGrowthMode.Geometric;
+            // UnityEditor.WebGL lives in the Web module assembly, which Compile-Game.ps1 does not reference.
+            var webSettings = Type.GetType("UnityEditor.WebGL.UserBuildSettings, UnityEditor.WebGL.Extensions");
+            var wasmOpt = Type.GetType("UnityEditor.WebGL.WasmCodeOptimization, UnityEditor.WebGL.Extensions");
+            if (webSettings != null && wasmOpt != null)
+            {
+                object diskSize = Enum.Parse(wasmOpt, "DiskSize");
+                webSettings.GetProperty("codeOptimization").SetValue(null, diskSize);
+            }
         }
 
         /// <summary>

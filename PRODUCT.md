@@ -16,7 +16,7 @@ Original GLB files are retained in SourceAssets. The supplied models are texture
 
 ## Current implementation assumptions
 
-Keyboard and mouse on Windows; one human versus the computer; selectable character; three-minute matches; two- and three-point shots; overtime for ties. The user was asked about game mode while asset processing continues. These are implementation defaults, not claimed user preferences.
+Keyboard and mouse on Windows; one human versus the computer; player and opponent are chosen independently from the roster; three-minute matches; two- and three-point shots; overtime for ties. The user was asked about game mode while asset processing continues. These are implementation defaults, not claimed user preferences.
 
 ## Visual commitments
 
