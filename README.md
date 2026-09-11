@@ -1,6 +1,6 @@
 # 喵喵街頭籃球
 
-台北夕陽球場上的一對一街頭籃球。Windows、WebGL 安裝檔放在 [Releases](https://github.com/goldshoot0720/Unity3DBaseketball/releases)。
+台北夕陽球場上的一對一街頭籃球。Windows、WebGL、Android 安裝檔放在 [Releases](https://github.com/goldshoot0720/Unity3DBaseketball/releases)。
 
 ## 操作
 

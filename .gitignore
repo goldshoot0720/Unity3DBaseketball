@@ -3,6 +3,9 @@
 [Oo]bj/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
+.utmp/
+Data/
+.vscode/
 Builds/
 Backups/
 SourceAssets/*.glb
