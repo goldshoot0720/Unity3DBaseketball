@@ -1,5 +1,5 @@
 Result: Succeeded
 Errors: 0
 Warnings: 346
-Bytes: 59331324
-Time: 00:04:02.2992867
+Bytes: 47252704
+Time: 00:01:12.1995730

@@ -147,8 +147,15 @@ namespace MiaCourt
                 DifficultyTuning odds = game.Tuning;
                 float two = level==CourtDifficulty.Easy?.93f:level==CourtDifficulty.Normal?.83f:.73f;
                 float three = level==CourtDifficulty.Easy?.33f:level==CourtDifficulty.Normal?.23f:.13f;
+                float steal = level==CourtDifficulty.Easy?.53f:level==CourtDifficulty.Normal?.33f:.13f;
+                float block = level==CourtDifficulty.Easy?.73f:level==CourtDifficulty.Normal?.53f:.33f;
                 Check(Mathf.Approximately(odds.Odds(true,2),two) && Mathf.Approximately(odds.Odds(true,3),three),
                     "shooting odds at " + odds.label);
+                Check(Mathf.Approximately(odds.StealOdds(true),steal) && Mathf.Approximately(odds.BlockOdds(true),block),
+                    "steal and block odds at " + odds.label);
+                // A harder setting is a harder rival, not just a harder shot.
+                Check(odds.Odds(false,2)>0 && odds.StealOdds(false)>0 && odds.BlockOdds(false)>0,
+                    "the computer has its own odds at " + odds.label);
             }
             game.SetDifficulty(CourtDifficulty.Normal);
             game.StartMatch();

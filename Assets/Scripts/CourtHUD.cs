@@ -57,30 +57,31 @@ namespace MiaCourt
             if (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.Tab)
                 Event.current.Use();
             Fill(new Rect(24, 20, 430, height - 40), ink);
-            Text(new Rect(48, 28, 390, 70), "喵喵\n街頭籃球", 34, paper, FontStyle.Bold);
-            Text(new Rect(48, 102, 380, 28),
+            Text(new Rect(48, 30, 390, 46), "喵喵街頭籃球", 32, paper, FontStyle.Bold);
+            Text(new Rect(48, 84, 380, 28),
                 game.cupMode ? "台北夕陽球場 · 八強單淘汰，最多 3 場" : "台北夕陽球場 · 一場定勝負", 18, paper);
             int previousSize = button.fontSize;
             button.fontSize = 18;
-            if (Button(new Rect(48, 132, 175, 42), "單場比賽", !game.cupMode)) game.SetCupMode(false);
-            if (Button(new Rect(231, 132, 175, 42), "連續比賽", game.cupMode)) game.SetCupMode(true);
+            if (Button(new Rect(48, 116, 175, 42), "單場比賽", !game.cupMode)) game.SetCupMode(false);
+            if (Button(new Rect(231, 116, 175, 42), "連續比賽", game.cupMode)) game.SetCupMode(true);
             for (int level = 0; level < 3; level++)
             {
                 var pick = (CourtDifficulty)level;
-                if (Button(new Rect(48 + level * 121, 178, 116, 38), DifficultyTuning.LabelFor(pick), game.difficulty == pick))
+                if (Button(new Rect(48 + level * 121, 162, 116, 38), DifficultyTuning.LabelFor(pick), game.difficulty == pick))
                     game.SetDifficulty(pick);
             }
             DifficultyTuning odds = game.Tuning;
-            Text(new Rect(48, 222, 380, 22),
-                "你的命中率 兩分 " + Mathf.RoundToInt(odds.playerTwo * 100) + "% · 三分 " +
-                Mathf.RoundToInt(odds.playerThree * 100) + "%   N 切換", 16, paper);
+            Text(new Rect(48, 204, 380, 22), "你的命中 兩分 " + Mathf.RoundToInt(odds.playerTwo * 100) +
+                "% · 三分 " + Mathf.RoundToInt(odds.playerThree * 100) + "%", 15, paper);
+            Text(new Rect(48, 226, 380, 22), "抄截 " + Mathf.RoundToInt(odds.playerSteal * 100) +
+                "% · 火鍋 " + Mathf.RoundToInt(odds.playerBlock * 100) + "%   N 切換難度", 15, paper);
             bool pickingCpu = game.pickingOpponent && !game.cupMode;
-            if (Button(new Rect(48, 248, game.cupMode ? 358 : 175, 42), "你  " + MiaCourtAssets.NameFor(game.selectedCharacter), !pickingCpu))
+            if (Button(new Rect(48, 252, game.cupMode ? 358 : 175, 42), "你  " + MiaCourtAssets.NameFor(game.selectedCharacter), !pickingCpu))
                 game.pickingOpponent = false;
-            if (!game.cupMode && Button(new Rect(231, 248, 175, 42), "對手  " + MiaCourtAssets.NameFor(game.selectedOpponent),
+            if (!game.cupMode && Button(new Rect(231, 252, 175, 42), "對手  " + MiaCourtAssets.NameFor(game.selectedOpponent),
                     pickingCpu, CourtBuilder.Coral))
                 game.pickingOpponent = true;
-            Text(new Rect(48, 294, 380, 22),
+            Text(new Rect(48, 298, 380, 22),
                 game.cupMode ? "點角色選你 · 七位對手由抽籤決定 · C 切換賽制"
                     : pickingCpu ? "點角色當對手 · Tab 改選你" : "點角色當你 · Tab 改選對手 · C 切換賽制",
                 16, pickingCpu ? CourtBuilder.Coral : CourtBuilder.Mint);
@@ -88,7 +89,7 @@ namespace MiaCourt
             const float bw = 114;
             const float bh = 36;
             const float gap = 8;
-            float gridY = 320;
+            float gridY = 324;
             for (int i = 0; i < MiaCourtAssets.CharacterCount; i++)
             {
                 int col = i % cols;

@@ -14,8 +14,10 @@ namespace MiaCourt
         public string label;
         /// <summary>The player's odds from two and from three, as set by the brief.</summary>
         public float playerTwo, playerThree;
+        /// <summary>The player's odds that a swipe lands and that a contest gets a hand on the ball.</summary>
+        public float playerSteal, playerBlock;
         /// <summary>The computer's own odds, which move the other way: a hard cup is a hard rival.</summary>
-        public float rivalTwo, rivalThree;
+        public float rivalTwo, rivalThree, rivalSteal, rivalBlock;
         /// <summary>Seconds between the opponent's decisions.</summary>
         public float thinkInterval;
         public float speed;
@@ -29,25 +31,34 @@ namespace MiaCourt
         public float Odds(bool human, int points) =>
             human ? (points == 3 ? playerThree : playerTwo) : (points == 3 ? rivalThree : rivalTwo);
 
+        /// <summary>Odds a swipe that reaches the ball carrier actually takes the ball.</summary>
+        public float StealOdds(bool human) => human ? playerSteal : rivalSteal;
+
+        /// <summary>Odds a contest that reaches the shot actually gets a hand on it.</summary>
+        public float BlockOdds(bool human) => human ? playerBlock : rivalBlock;
+
         public static DifficultyTuning For(CourtDifficulty level)
         {
             if (level == CourtDifficulty.Easy)
                 return new DifficultyTuning
                 {
-                    label = "簡單", playerTwo = .93f, playerThree = .33f, rivalTwo = .55f, rivalThree = .15f,
+                    label = "簡單", playerTwo = .93f, playerThree = .33f, playerSteal = .53f, playerBlock = .73f,
+                    rivalTwo = .55f, rivalThree = .15f, rivalSteal = .15f, rivalBlock = .25f,
                     thinkInterval = .34f, speed = .80f, stealChance = .14f, patience = 4.6f, gather = 4.0f,
                     aimLow = .34f, aimHigh = .96f
                 };
             if (level == CourtDifficulty.Hard)
                 return new DifficultyTuning
                 {
-                    label = "困難", playerTwo = .73f, playerThree = .13f, rivalTwo = .80f, rivalThree = .30f,
+                    label = "困難", playerTwo = .73f, playerThree = .13f, playerSteal = .13f, playerBlock = .33f,
+                    rivalTwo = .80f, rivalThree = .30f, rivalSteal = .50f, rivalBlock = .65f,
                     thinkInterval = .12f, speed = 1.08f, stealChance = .62f, patience = 2.8f, gather = 2.4f,
                     aimLow = .58f, aimHigh = .78f
                 };
             return new DifficultyTuning
             {
-                label = "普通", playerTwo = .83f, playerThree = .23f, rivalTwo = .68f, rivalThree = .22f,
+                label = "普通", playerTwo = .83f, playerThree = .23f, playerSteal = .33f, playerBlock = .53f,
+                rivalTwo = .68f, rivalThree = .22f, rivalSteal = .30f, rivalBlock = .45f,
                 thinkInterval = .23f, speed = .92f, stealChance = .28f, patience = 3.8f, gather = 3.4f,
                 aimLow = .48f, aimHigh = .88f
             };

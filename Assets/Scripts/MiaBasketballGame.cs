@@ -537,10 +537,18 @@ namespace MiaCourt
                 CatPlayer actor = players[team];
                 if (actor.reach <= 0) continue;
                 actor.reach = Mathf.Max(0, actor.reach - dt);
+                // Reaching the ball is the geometry; taking it is a roll against the difficulty.
+                // The reach is spent on the first frame it connects either way, so one swipe is
+                // one attempt and a whiff costs the recovery.
                 if (!actor.IsBlocking && holder == 1-team && pickupDelay <= 0 &&
                     Vector3.Distance(actor.transform.position,players[1-team].transform.position) < StealReach)
                 {
                     actor.reach = 0;
+                    if (Random.value >= Tuning.StealOdds(team == 0))
+                    {
+                        if (team == 0) ShowMessage("抄截失手",Color.white,1.1f);
+                        continue;
+                    }
                     GiveBall(team);
                     if (team == 0) steals++;
                     ShowMessage(team == 0 ? "抄截成功！" : "球被搶走了，快回防！", team == 0 ? CourtBuilder.Mint : CourtBuilder.Coral,1.6f);
@@ -549,9 +557,14 @@ namespace MiaCourt
                 else if (actor.IsBlocking && holder < 0 && shotLive && Vector3.Distance(actor.transform.position+Vector3.up*(2f+actor.jump),ballBody.position) < 1.6f)
                 {
                     actor.reach = 0;
+                    if (Random.value >= Tuning.BlockOdds(team == 0))
+                    {
+                        if (team == 0) ShowMessage("火鍋沒蓋到",Color.white,1.1f);
+                        continue;
+                    }
                     ballBody.linearVelocity = new Vector3(team==0?3.5f:-3.5f,5,Random.Range(-2f,2f));
                     shotLive = false;
-                    ShowMessage("火鍋！快搶籃板",CourtBuilder.Mint,1.6f);
+                    ShowMessage(team == 0 ? "火鍋！快搶籃板" : "被蓋火鍋了！",team == 0 ? CourtBuilder.Mint : CourtBuilder.Coral,1.6f);
                     sound.Play(CourtSound.Steal);
                 }
             }
