@@ -11,6 +11,8 @@ namespace MiaCourt
     {
         readonly List<string> checks = new List<string>();
         readonly List<string> errors = new List<string>();
+        readonly List<string> skippedCaptures = new List<string>();
+        readonly List<string> editorNoise = new List<string>();
         MiaBasketballGame game;
         string output;
         bool smoke;
@@ -225,12 +227,19 @@ namespace MiaCourt
             game.ShowHome();
             game.SetCupMode(false);
             Application.logMessageReceived -= OnLog;
-            File.WriteAllText(Path.Combine(output,"runtime.txt"),string.Join("\n",checks)+"\nRuntime errors: "+errors.Count+"\n"+string.Join("\n",errors));
+            string captures = skippedCaptures.Count == 0 ? ""
+                : "\nCaptures skipped (no graphics device): "+string.Join(", ",skippedCaptures);
+            string noise = editorNoise.Count == 0 ? ""
+                : "\nEditor-only exceptions ignored: "+string.Join(" · ",editorNoise);
+            File.WriteAllText(Path.Combine(output,"runtime.txt"),string.Join("\n",checks)+captures+noise+
+                "\nRuntime errors: "+errors.Count+"\n"+string.Join("\n",errors));
             bool pass=checks.TrueForAll(x=>x.StartsWith("PASS")) && errors.Count==0;
             File.WriteAllText(Path.Combine(output,"runtime-result.txt"),pass?"PASS":"FAIL");
             Debug.Log("MIA_SMOKE_"+(pass?"PASS":"FAIL"));
             #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying=false;
+            // A batch run has nobody to read the editor window, so it reports through the exit code.
+            if (Application.isBatchMode) UnityEditor.EditorApplication.Exit(pass?0:1);
             #else
             Application.Quit(pass?0:1);
             #endif
@@ -264,10 +273,24 @@ namespace MiaCourt
         void Check(bool condition,string name) => checks.Add((condition?"PASS ":"FAIL ")+name);
         void OnLog(string message,string trace,LogType type)
         {
-            if (type==LogType.Exception || type==LogType.Error || type==LogType.Assert) errors.Add(message+"\n"+trace);
+            if (type!=LogType.Exception && type!=LogType.Error && type!=LogType.Assert) return;
+            // A cold project copy makes the editor's own search indexer throw on startup, which
+            // says nothing about the game. Anything the game is anywhere near still fails the run;
+            // only editor internals with no project frame in the stack are set aside.
+            bool editorOnly = !string.IsNullOrEmpty(trace) && trace.Contains("UnityEditor.") && !trace.Contains("MiaCourt");
+            if (editorOnly) editorNoise.Add(message.Split('\n')[0]);
+            else errors.Add(message+"\n"+trace);
         }
+        static bool CanRender => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.Null;
+
+        /// <summary>
+        /// Screenshots need a frame to end. A -nographics run never ends one, so
+        /// WaitForEndOfFrame would never return and the whole test would hang there; the checks
+        /// matter more than the captures, so a headless run simply skips them.
+        /// </summary>
         IEnumerator Capture(string name)
         {
+            if (!CanRender) { skippedCaptures.Add(name); yield break; }
             yield return new WaitForEndOfFrame();
             ScreenCapture.CaptureScreenshot(Path.Combine(output,name));
             yield return null;

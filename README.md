@@ -52,4 +52,20 @@ Unity 6000.6.0f1、URP。編輯器選單：
 
 WebGL 為 Gzip，內建解壓縮，可用任何靜態網站伺服器或本機 `python -m http.server` 開啟（不要直接雙擊 `index.html`）。Android 為 ARM64 IL2CPP，使用 Unity 偵錯金鑰簽署，可側載。
 
+## 驗證
+
+規則與幾何的純函式檢查：
+
+```
+Unity -batchmode -quit -nographics -projectPath . -executeMethod MiaCourt.Editor.MiaCourtSetup.ValidateRules
+```
+
+實際進 Play mode 的執行期檢查（動作骨架、投籃條時限、命中計分、難度機率、賽程），結束後以離開碼回報，逐項結果寫在 `Documentation/Validation/runtime.txt`：
+
+```
+Unity -batchmode -nographics -projectPath . -executeMethod MiaCourt.Editor.MiaCourtSetup.RunSmokeTest -miaSmokeTest
+```
+
+`-nographics` 沒有可以結束的影格，所以截圖會跳過、只跑檢查；要連截圖一起產出就拿掉 `-nographics`。
+
 投籃條會在 0.8 秒內掃完全長後折返，左右快速來回；在綠區放開可提高命中品質。出手時限依出手點決定：三分線外 3 秒、三分線內 1.5 秒，時限一到就倉促出手。持球時有運球與雙手收球動作；防守鍵會依對方持球或投籃狀態觸發抄截或跳起封蓋。

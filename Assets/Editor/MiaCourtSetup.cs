@@ -34,6 +34,18 @@ namespace MiaCourt.Editor
             catch (Exception error) { Debug.LogException(error); }
         }
 
+        /// <summary>
+        /// Batch entry point for the runtime checks: opens the court, enters play mode and lets
+        /// MiaSmokeTest quit with the exit code. Pass -miaSmokeTest so the component arms itself.
+        /// </summary>
+        public static void RunSmokeTest()
+        {
+            SessionState.SetBool("MiaCourt.Smoke", true);
+            MiaProjectSetup.Configure();
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(MiaProjectSetup.ScenePath);
+            EditorApplication.EnterPlaymode();
+        }
+
         [MenuItem("Mia Court/Play local test")]
         public static void StartLocalTest()
         {
