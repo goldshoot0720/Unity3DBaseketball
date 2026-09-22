@@ -56,6 +56,16 @@ namespace MiaCourt
 
         public static float SweepCharge(float age) => Mathf.PingPong(age / ChargeSweepSeconds, 1f);
 
+        /// <summary>True while the meter is travelling left to right, so the HUD can show which way it is going.</summary>
+        public static bool SweepRising(float age) => Mathf.Repeat(age / ChargeSweepSeconds, 2f) < 1f;
+
+        /// <summary>Half the width, in meter units, of the band that still counts as a good release.</summary>
+        public const float GoodReleaseBand = .122f;
+        /// <summary>Half the width of the band that counts as perfect.</summary>
+        public const float PerfectReleaseBand = .037f;
+        /// <summary>The centre of the green zone.</summary>
+        public const float PerfectRelease = .68f;
+
         public static Vector3 ClampToCourt(Vector3 position)
         {
             position.x = Mathf.Clamp(position.x, -HalfLength + .55f, HalfLength - .55f);

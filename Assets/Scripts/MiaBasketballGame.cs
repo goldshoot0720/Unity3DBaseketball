@@ -35,6 +35,11 @@ namespace MiaCourt
         public float lastQuality;
         public int lastShotPoints;
         public int steals;
+        public int blocks;
+        /// <summary>Seconds left on the floating score popup over the hoop, and what it says.</summary>
+        public float basketFlash;
+        public int basketFlashPoints;
+        public int basketFlashTeam;
         /// <summary>Easy, normal or hard: the shooting odds and how hard the computer plays.</summary>
         public CourtDifficulty difficulty = CourtDifficulty.Normal;
         public DifficultyTuning Tuning => DifficultyTuning.For(difficulty);
@@ -81,6 +86,10 @@ namespace MiaCourt
         /// <summary>Seconds this shot may be aimed, fixed when the meter opens so it never shrinks under the shooter.</summary>
         public float ChargeWindow => chargeWindow;
         public float ChargeSecondsRemaining => Mathf.Max(0, chargeWindow - chargeAge);
+        /// <summary>Which way the meter is sweeping, so the bar can show the direction of travel.</summary>
+        public bool ChargeRising => BasketballRules.SweepRising(chargeAge);
+        /// <summary>How good a release would be right now, for colouring the meter.</summary>
+        public float ChargeQuality => BasketballRules.ReleaseQuality(charge);
         // A swipe sweeps over a moment rather than testing a single frame, so a steal does not
         // demand frame-perfect timing, and whiffing costs far less than landing one.
         const float ReachSeconds = .30f;
@@ -272,7 +281,8 @@ namespace MiaCourt
             scores[0] = scores[1] = attempts[0] = attempts[1] = baskets[0] = baskets[1] = 0;
             remaining = BasketballRules.MatchSeconds;
             overtime = buzzerShot = false;
-            steals = 0;
+            steals = blocks = 0;
+            basketFlash = 0;
             matchAge = 0;
             countdown = 3f;
             scorePause = 0;
@@ -364,6 +374,7 @@ namespace MiaCourt
             if (State != MatchState.Playing) return;
             float dt = Time.deltaTime;
             messageTime = Mathf.Max(0, messageTime - dt);
+            basketFlash = Mathf.Max(0, basketFlash - dt);
             for (int i = 0; i < 3; i++)
                 if (Input.GetKeyDown((KeyCode)((int)KeyCode.Alpha1 + i))) cameraRig.SetView(i);
             if (Input.GetKeyDown(KeyCode.V)) cameraRig.SetView((cameraRig.view + 1) % 3);
@@ -564,6 +575,7 @@ namespace MiaCourt
                     }
                     ballBody.linearVelocity = new Vector3(team==0?3.5f:-3.5f,5,Random.Range(-2f,2f));
                     shotLive = false;
+                    if (team == 0) blocks++;
                     ShowMessage(team == 0 ? "火鍋！快搶籃板" : "被蓋火鍋了！",team == 0 ? CourtBuilder.Mint : CourtBuilder.Coral,1.6f);
                     sound.Play(CourtSound.Steal);
                 }
@@ -651,6 +663,9 @@ namespace MiaCourt
             baskets[team]++;
             nextPossession = 1-team;
             scorePause = 1.5f;
+            basketFlash = 1.6f;
+            basketFlashPoints = points;
+            basketFlashTeam = team;
             charging = false;
             SetTrajectory(false);
             ShowMessage(players[team].displayName + (points == 3 ? " · 三分命中！" : " · 得分！"),team==0?CourtBuilder.Mint:CourtBuilder.Coral,2.3f);

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>{{{ PRODUCT_NAME }}}</title>
+    <style>
+      :root { --ink: #0b1715; --paper: #f5f0d9; --muted: #a8b8ad; --mint: #66e8c7; --coral: #ff6e40; }
+      html, body { margin: 0; height: 100%; background: var(--ink); overflow: hidden; }
+      body { font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif; color: var(--paper); }
+      /* The HUD lays itself out against whatever shape the window is, so the canvas simply fills it. */
+      #game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; outline: none; background: var(--ink); }
+      #cover { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--ink);
+               transition: opacity .35s ease; }
+      #cover.gone { opacity: 0; pointer-events: none; }
+      .card { width: min(440px, calc(100vw - 48px)); }
+      h1 { margin: 0 0 6px; font-size: clamp(30px, 6vw, 44px); letter-spacing: .04em; }
+      .sub { margin: 0 0 28px; color: var(--muted); font-size: 16px; }
+      .track { height: 10px; background: #203330; border-radius: 5px; overflow: hidden; }
+      .fill { height: 100%; width: 0; background: var(--mint); border-radius: 5px; transition: width .15s linear; }
+      .row { display: flex; justify-content: space-between; margin-top: 10px; color: var(--muted); font-size: 14px; }
+      .error { margin-top: 22px; padding: 14px 16px; border-left: 4px solid var(--coral); background: #1b2624; line-height: 1.6;
+               font-size: 15px; display: none; }
+      .error code { color: var(--mint); }
+      #hint { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); padding: 8px 16px; background: rgba(11,23,21,.9);
+              border-left: 4px solid var(--mint); font-size: 15px; opacity: 0; transition: opacity .3s ease; pointer-events: none; }
+      #hint.show { opacity: 1; }
+    </style>
+  </head>
+  <body>
+    <canvas id="game" tabindex="-1"></canvas>
+    <div id="cover">
+      <div class="card">
+        <h1>{{{ PRODUCT_NAME }}}</h1>
+        <p class="sub">台北夕陽球場 · 一對一街頭籃球</p>
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="row"><span id="status">載入中…</span><span id="percent">0%</span></div>
+        <div class="error" id="error"></div>
+      </div>
+    </div>
+    <div id="hint">點一下畫面就能用鍵盤操作</div>
+    <script>
+      const canvas = document.getElementById("game");
+      const cover = document.getElementById("cover");
+      const fill = document.getElementById("fill");
+      const percent = document.getElementById("percent");
+      const status = document.getElementById("status");
+      const error = document.getElementById("error");
+      const hint = document.getElementById("hint");
+
+      function fail(html) {
+        status.textContent = "無法開始";
+        error.innerHTML = html;
+        error.style.display = "block";
+      }
+
+      // Opening index.html straight from disk cannot fetch the compressed build.
+      if (location.protocol === "file:") {
+        fail("這個網頁版需要從網頁伺服器開啟，不能直接雙擊 <code>index.html</code>。<br>" +
+             "在這個資料夾開終端機，執行 <code>python -m http.server</code>，再打開 <code>http://localhost:8000</code>。");
+      } else {
+        const buildUrl = "Build";
+        const config = {
+          dataUrl: buildUrl + "/{{{ DATA_FILENAME }}}",
+          frameworkUrl: buildUrl + "/{{{ FRAMEWORK_FILENAME }}}",
+#if USE_THREADS
+          workerUrl: buildUrl + "/{{{ WORKER_FILENAME }}}",
+#endif
+#if USE_WASM
+          codeUrl: buildUrl + "/{{{ CODE_FILENAME }}}",
+#endif
+#if MEMORY_FILENAME
+          memoryUrl: buildUrl + "/{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+          symbolsUrl: buildUrl + "/{{{ SYMBOLS_FILENAME }}}",
+#endif
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+          productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+          productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+          showBanner: (message, type) => { if (type === "error") fail(message); },
+        };
+
+        // Keys only reach the game while the canvas has focus. Give it focus as soon as the game
+        // is up, take it back on any click, and say so if the page loses it.
+        function focusGame() { canvas.focus(); hint.classList.remove("show"); }
+        canvas.addEventListener("pointerdown", focusGame);
+        window.addEventListener("blur", () => hint.classList.add("show"));
+        window.addEventListener("focus", () => setTimeout(() => {
+          if (document.activeElement !== canvas) hint.classList.add("show");
+        }, 50));
+
+        const script = document.createElement("script");
+        script.src = buildUrl + "/{{{ LOADER_FILENAME }}}";
+        script.onload = () => {
+          createUnityInstance(canvas, config, (progress) => {
+            const value = Math.round(progress * 100);
+            fill.style.width = value + "%";
+            percent.textContent = value + "%";
+            if (progress >= .9) status.textContent = "準備球場…";
+          }).then(() => {
+            cover.classList.add("gone");
+            focusGame();
+          }).catch((message) => {
+            fail("載入失敗：" + message);
+          });
+        };
+        script.onerror = () => fail("找不到遊戲檔案，請確認 <code>Build</code> 資料夾和這個網頁放在一起。");
+        document.body.appendChild(script);
+      }
+    </script>
+  </body>
+</html>

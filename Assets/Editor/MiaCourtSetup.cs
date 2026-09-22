@@ -198,6 +198,9 @@ namespace MiaCourt.Editor
             // drops those classes, CourtBuilder.Start throws, and no players are spawned.
             PlayerSettings.stripEngineCode = false;
             PlayerSettings.stripUnusedMeshComponents = true;
+            // The project template fills the browser window instead of a fixed 960x600 box, shows its
+            // own loading screen, and hands the canvas keyboard focus once the game is up.
+            PlayerSettings.WebGL.template = "PROJECT:MiaCourt";
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
             PlayerSettings.WebGL.decompressionFallback = true;
             PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
