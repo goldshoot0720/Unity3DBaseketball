@@ -58,37 +58,54 @@ namespace MiaCourt
                 Event.current.Use();
             Fill(new Rect(24, 20, 430, height - 40), ink);
             Text(new Rect(48, 28, 390, 70), "喵喵\n街頭籃球", 34, paper, FontStyle.Bold);
-            Text(new Rect(48, 102, 380, 28), "台北夕陽球場 · 選你和對手", 18, paper);
+            Text(new Rect(48, 102, 380, 28),
+                game.cupMode ? "台北夕陽球場 · 八強單淘汰，最多 3 場" : "台北夕陽球場 · 一場定勝負", 18, paper);
             int previousSize = button.fontSize;
             button.fontSize = 18;
-            if (Button(new Rect(48, 136, 175, 42), "你  " + MiaCourtAssets.NameFor(game.selectedCharacter), !game.pickingOpponent))
+            if (Button(new Rect(48, 132, 175, 42), "單場比賽", !game.cupMode)) game.SetCupMode(false);
+            if (Button(new Rect(231, 132, 175, 42), "連續比賽", game.cupMode)) game.SetCupMode(true);
+            for (int level = 0; level < 3; level++)
+            {
+                var pick = (CourtDifficulty)level;
+                if (Button(new Rect(48 + level * 121, 178, 116, 38), DifficultyTuning.LabelFor(pick), game.difficulty == pick))
+                    game.SetDifficulty(pick);
+            }
+            DifficultyTuning odds = game.Tuning;
+            Text(new Rect(48, 222, 380, 22),
+                "你的命中率 兩分 " + Mathf.RoundToInt(odds.playerTwo * 100) + "% · 三分 " +
+                Mathf.RoundToInt(odds.playerThree * 100) + "%   N 切換", 16, paper);
+            bool pickingCpu = game.pickingOpponent && !game.cupMode;
+            if (Button(new Rect(48, 248, game.cupMode ? 358 : 175, 42), "你  " + MiaCourtAssets.NameFor(game.selectedCharacter), !pickingCpu))
                 game.pickingOpponent = false;
-            if (Button(new Rect(231, 136, 175, 42), "對手  " + MiaCourtAssets.NameFor(game.selectedOpponent),
-                    game.pickingOpponent, CourtBuilder.Coral))
+            if (!game.cupMode && Button(new Rect(231, 248, 175, 42), "對手  " + MiaCourtAssets.NameFor(game.selectedOpponent),
+                    pickingCpu, CourtBuilder.Coral))
                 game.pickingOpponent = true;
-            Text(new Rect(48, 182, 380, 22), game.pickingOpponent ? "點角色當對手 · Tab 改選你" : "點角色當你 · Tab 改選對手",
-                16, game.pickingOpponent ? CourtBuilder.Coral : CourtBuilder.Mint);
+            Text(new Rect(48, 294, 380, 22),
+                game.cupMode ? "點角色選你 · 七位對手由抽籤決定 · C 切換賽制"
+                    : pickingCpu ? "點角色當對手 · Tab 改選你" : "點角色當你 · Tab 改選對手 · C 切換賽制",
+                16, pickingCpu ? CourtBuilder.Coral : CourtBuilder.Mint);
             const int cols = 3;
             const float bw = 114;
             const float bh = 36;
             const float gap = 8;
-            float gridY = 208;
+            float gridY = 320;
             for (int i = 0; i < MiaCourtAssets.CharacterCount; i++)
             {
                 int col = i % cols;
                 int row = i / cols;
                 var rect = new Rect(48 + col * (bw + gap), gridY + row * (bh + gap), bw, bh);
                 bool you = i == game.selectedCharacter;
-                bool cpu = i == game.selectedOpponent;
+                bool cpu = !game.cupMode && i == game.selectedOpponent;
                 if (Button(rect, MiaCourtAssets.NameFor(i), you || cpu, you ? CourtBuilder.Mint : CourtBuilder.Coral))
                     game.SelectRosterSlot(i);
             }
             button.fontSize = previousSize;
             int rows = (MiaCourtAssets.CharacterCount + cols - 1) / cols;
             float after = gridY + rows * (bh + gap) + 6;
-            if (Button(new Rect(48, after, 358, 48), "開始比賽   Enter", true)) game.StartMatch();
-            Text(new Rect(48, after + 56, 358, 24), "每場 3 分鐘 · 平手加賽", 17, paper);
-            Text(new Rect(48, after + 84, 358, 72), "WASD 移動 · Shift 衝刺\n按住空白鍵蓄力，放開投籃\n防守時按 E 或空白鍵抄截", 16, paper);
+            if (Button(new Rect(48, after, 358, 48), game.cupMode ? "開始連續比賽   Enter" : "開始比賽   Enter", true))
+                game.StartSelected();
+            Text(new Rect(48, after + 56, 358, 24), "3分30秒 · 先達21分勝 · 平手加賽", 17, paper);
+            Text(new Rect(48, after + 82, 358, 76), "WASD 移動 · Shift 衝刺 · V 視角\n按住空白鍵開投籃條，掃到綠區放開\n三分線外 3 秒、線內 1.5 秒 · E 抄截", 16, paper);
             SoundButton();
         }
 
@@ -103,7 +120,9 @@ namespace MiaCourt
             int seconds = Mathf.CeilToInt(game.remaining);
             Text(new Rect(x + 225, 34, 204, 44), (seconds / 60).ToString("00") + ":" + (seconds % 60).ToString("00"),
                 32, paper, FontStyle.Bold, TextAnchor.MiddleCenter);
-            Text(new Rect(x + 210, 80, 234, 28), game.overtime ? "加賽" : "一對一", 17, paper, FontStyle.Normal, TextAnchor.MiddleCenter);
+            Text(new Rect(x + 210, 80, 234, 28),
+                (game.overtime ? "加賽" : game.InCup ? game.CupRoundName : "一對一") + " · " + game.DifficultyName,
+                17, paper, FontStyle.Normal, TextAnchor.MiddleCenter);
             if (Button(new Rect(width - 156, 26, 124, 44), "暫停 Esc")) game.TogglePause();
         }
 
@@ -133,8 +152,12 @@ namespace MiaCourt
             if (game.charging)
             {
                 float x = (width - 300) / 2;
-                Fill(new Rect(x - 16, height - 140, 332, 95), ink);
-                Text(new Rect(x, height - 134, 300, 28), "對準綠區放開", 18, paper, FontStyle.Normal, TextAnchor.MiddleCenter);
+                float left = game.ChargeSecondsRemaining;
+                Fill(new Rect(x - 16, height - 164, 332, 119), ink);
+                Text(new Rect(x, height - 158, 300, 26), game.ChargeWindow > BasketballRules.CloseShotWindow ? "三分線外 · 3 秒內要出手" : "三分線內 · 1.5 秒內要出手",
+                    17, paper, FontStyle.Normal, TextAnchor.MiddleCenter);
+                Text(new Rect(x, height - 130, 300, 28), "綠區放開 · 剩 " + left.ToString("0.0") + " 秒",
+                    19, left < .5f ? CourtBuilder.Coral : paper, FontStyle.Bold, TextAnchor.MiddleCenter);
                 Fill(new Rect(x, height - 92, 300, 14), new Color(.32f, .39f, .35f));
                 Fill(new Rect(x + 188, height - 96, 32, 22), CourtBuilder.Mint);
                 Fill(new Rect(x + game.charge * 296, height - 100, 4, 30), Color.white);
@@ -148,14 +171,14 @@ namespace MiaCourt
             Text(new Rect(x + 24, 222, 312, 56), "比賽暫停", 32, paper, FontStyle.Bold);
             if (Button(new Rect(x + 24, 290, 312, 52), "繼續比賽   Esc", true)) game.TogglePause();
             if (Button(new Rect(x + 24, 358, 312, 52), "回到主畫面")) game.ShowHome();
-            Text(new Rect(x + 24, 428, 312, 118), "WASD 移動 · Shift 衝刺\n空白鍵蓄力投籃，放開出手\n防守時按 E 或空白鍵抄截", 17, paper);
+            Text(new Rect(x + 24, 428, 312, 118), "WASD 移動 · Shift 衝刺\n空白鍵開投籃條，綠區放開出手\n三分線外 3 秒、線內 1.5 秒\n防守時按 E 或空白鍵抄截", 17, paper);
             SoundButton();
         }
 
         string PlayHint(bool stealReady)
         {
             if (game.holder == 0)
-                return "WASD 移動 · Shift 衝刺 · 空白鍵蓄力投籃\n放開空白鍵出手 · V 切換視角";
+                return "WASD 移動 · Shift 衝刺 · 空白鍵開投籃條\n投籃條掃到綠區放開出手 · V 切換視角";
             if (stealReady)
                 return "按 E 或空白鍵抄截！\nWASD 移動 · Shift 衝刺 · V 切換視角";
             if (game.holder < 0)
@@ -165,12 +188,65 @@ namespace MiaCourt
 
         void Result()
         {
+            if (game.InCup) { CupResult(); return; }
             float x = (width - 440) / 2;
             Fill(new Rect(x, 215, 440, 355), ink);
             Text(new Rect(x + 28, 239, 384, 58), game.scores[0] > game.scores[1] ? "你贏了！" : "下場再挑戰", 36, paper, FontStyle.Bold);
             Text(new Rect(x + 28, 316, 384, 64), "命中 " + game.baskets[0] + " / " + game.attempts[0] + " 球\n最高得分  " + game.BestScore, 21, paper);
-            if (Button(new Rect(x + 28, 410, 384, 52), "再打一場   Enter", true)) game.StartMatch();
+            if (Button(new Rect(x + 28, 410, 384, 52), "再打一場   Enter", true)) game.ContinueAfterResult();
             if (Button(new Rect(x + 28, 484, 384, 48), "回到主畫面")) game.ShowHome();
+        }
+
+        void CupResult()
+        {
+            CupBracket cup = game.cup;
+            const float w = 560;
+            float x = (width - w) / 2;
+            bool over = cup.round == CupRound.Over;
+            Fill(new Rect(x, 120, w, 440), ink);
+            string place = CupBracket.PlaceName(cup.PlayerPlace);
+            Text(new Rect(x + 28, 142, w - 56, 54),
+                over ? (cup.PlayerPlace <= 3 ? place + "！" : place) : cup.LastRoundName + (cup.PlayerAdvanced ? " · 晉級" : " · 淘汰"),
+                34, cup.PlayerAdvanced || cup.PlayerPlace == 1 ? CourtBuilder.Mint : paper, FontStyle.Bold);
+            float y = 204;
+            if (cup.LastPlayerTie != null)
+            {
+                Text(new Rect(x + 28, y, w - 56, 28), TieLine(cup.LastPlayerTie), 20, CourtBuilder.Mint, FontStyle.Bold);
+                y += 32;
+            }
+            Text(new Rect(x + 28, y, w - 56, 22), "同輪其他場次", 15, paper);
+            y += 24;
+            foreach (CupTie tie in cup.LastRoundTies)
+            {
+                if (tie == null || tie == cup.LastPlayerTie) continue;
+                Text(new Rect(x + 28, y, w - 56, 24), TieLine(tie), 16, paper);
+                y += 24;
+            }
+            y += 10;
+            if (over)
+                Text(new Rect(x + 28, y, w - 56, 52),
+                    "冠軍 " + MiaCourtAssets.NameFor(cup.champion) + " · 亞軍 " + MiaCourtAssets.NameFor(cup.runnerUp) +
+                    "\n季軍 " + MiaCourtAssets.NameFor(cup.third) + " · 命中 " + game.baskets[0] + " / " + game.attempts[0] + " 球",
+                    18, paper);
+            else
+            {
+                CupTie next = cup.PlayerTie();
+                Text(new Rect(x + 28, y, w - 56, 28),
+                    "下一場 " + cup.NextMatchName() + " · 對手 " + MiaCourtAssets.NameFor(next.Other(cup.player)), 19, paper);
+            }
+            if (Button(new Rect(x + 28, 430, w - 56, 52), over ? "再抽一次籤   Enter" : "打下一場   Enter", true))
+                game.ContinueAfterResult();
+            if (Button(new Rect(x + 28, 494, w - 56, 48), "回到主畫面")) game.ShowHome();
+        }
+
+        /// <summary>One line of the bracket, with the player's side called out.</summary>
+        string TieLine(CupTie tie)
+        {
+            string left = MiaCourtAssets.NameFor(tie.left);
+            string right = MiaCourtAssets.NameFor(tie.right);
+            if (game.cup != null && tie.left == game.cup.player) left = "你 · " + left;
+            else if (game.cup != null && tie.right == game.cup.player) right += " · 你";
+            return left + "   " + tie.leftScore + " － " + tie.rightScore + "   " + right;
         }
 
         void SoundButton()

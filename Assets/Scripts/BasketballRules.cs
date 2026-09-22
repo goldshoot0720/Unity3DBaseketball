@@ -12,9 +12,14 @@ namespace MiaCourt
         public const float RimRadius = .62f;
         public const float BallRadius = .20f;
         public const float ThreePointDistance = 6.6f;
-        public const float MatchSeconds = 180f;
+        public const int WinningScore = 21;
+        public const float MatchSeconds = 210f;
         public const float PossessionSeconds = 18f;
         public const float Gravity = 14f;
+        /// <summary>Seconds the shot meter needs to travel the bar once, before it turns around.</summary>
+        public const float ChargeSweepSeconds = .8f;
+        public const float LongShotWindow = 3f;
+        public const float CloseShotWindow = 1.5f;
 
         public static Vector3 HoopFor(int attackingTeam) => new Vector3(attackingTeam == 0 ? HoopX : -HoopX, HoopHeight, 0);
 
@@ -44,6 +49,12 @@ namespace MiaCourt
         }
 
         public static float ReleaseQuality(float charge) => Mathf.Clamp01(1f - Mathf.Abs(charge - .68f) * 2.7f);
+
+        /// <summary>A long shot earns a longer aim, so the meter offers more passes over the green zone.</summary>
+        public static float ShotWindow(Vector3 origin, Vector3 hoop) =>
+            ShotValue(origin, hoop) == 3 ? LongShotWindow : CloseShotWindow;
+
+        public static float SweepCharge(float age) => Mathf.PingPong(age / ChargeSweepSeconds, 1f);
 
         public static Vector3 ClampToCourt(Vector3 position)
         {

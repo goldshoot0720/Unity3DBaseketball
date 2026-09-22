@@ -9,6 +9,37 @@ namespace MiaCourt
         public static readonly Color Mint = new Color(.40f, .91f, .78f);
         public static readonly Color Coral = new Color(1f, .43f, .25f);
         static Material white, steel, wood, orange;
+        static readonly Dictionary<string, Material> propMaterials = new Dictionary<string, Material>();
+
+        /// <summary>
+        /// Instantiates a converted scene prop, or returns null so the caller keeps its procedural
+        /// stand-in. The props are decorative only: every one stands outside the ball containment.
+        /// </summary>
+        static GameObject Prop(MiaBasketballGame game, string id, Transform parent, Vector3 position, float yaw, string name)
+        {
+            GameObject model = game.assets == null ? null : game.assets.PropFor(id);
+            if (model == null) return null;
+            var instance = Object.Instantiate(model, parent);
+            instance.name = name;
+            instance.transform.localPosition = position;
+            instance.transform.localRotation = Quaternion.Euler(0, yaw, 0);
+            if (!propMaterials.TryGetValue(id, out Material material))
+            {
+                material = Material(id, Color.white, .3f);
+                Texture2D albedo = game.assets.PropTextureFor(id);
+                if (albedo != null) material.mainTexture = albedo;
+                Texture2D normal = game.assets.PropNormalFor(id);
+                if (normal != null)
+                {
+                    material.SetTexture("_BumpMap", normal);
+                    material.EnableKeyword("_NORMALMAP");
+                }
+                propMaterials[id] = material;
+            }
+            foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>())
+                renderer.sharedMaterial = material;
+            return instance;
+        }
 
         public static Material Material(string name, Color color, float smoothness = .25f)
         {
@@ -86,6 +117,7 @@ namespace MiaCourt
         public static void Build(MiaBasketballGame game)
         {
             var root = new GameObject("Taipei sunset court").transform;
+            propMaterials.Clear();
             white = Material("Warm court paint", new Color(.90f, .87f, .73f), .18f);
             steel = Material("Graphite steel", new Color(.075f, .12f, .13f), .45f);
             wood = Material("Sun warmed concrete", new Color(.29f, .31f, .28f), .12f);
@@ -123,14 +155,19 @@ namespace MiaCourt
             Disc(root, Vector3.up * .019f, 1.8f, red);
             Ring("Center circle", root, Vector3.up * .033f, 1.8f, .075f, white.color, false);
 
-            BuildFence(root);
-            BuildBench(root, -6.5f);
-            BuildBench(root, 6.5f);
+            BuildFence(root, game);
+            BuildBench(root, game, -6.5f);
+            BuildBench(root, game, 6.5f);
             for (int side = -1; side <= 1; side += 2)
             {
+                if (Prop(game, "CourtFloodlight", root, new Vector3(side * 15, 0, 7.7f), 0, "Floodlight pole") != null) continue;
                 Box("Light pole", root, new Vector3(side * 15, 4.4f, 7.7f), new Vector3(.15f, 8.8f, .15f), steel);
                 Box("Floodlight", root, new Vector3(side * 15, 8.8f, 7.5f), new Vector3(1.1f, .26f, .4f), white, false);
             }
+            // Taipei street dressing: the kerbside bin and two scooters parked behind the fence.
+            Prop(game, "CourtTrashBin", root, new Vector3(12.2f, 0, 7.6f), 0, "Trash bin");
+            Prop(game, "CourtScooter", root, new Vector3(-11.4f, 0, 9.5f), 0, "Parked scooter");
+            Prop(game, "CourtScooter", root, new Vector3(-9.1f, 0, 9.5f), 7, "Parked scooter");
             var sun = new GameObject("Golden hour sun").AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.transform.rotation = Quaternion.Euler(32, -42, 0);
@@ -178,10 +215,21 @@ namespace MiaCourt
             body.angularDamping = .25f;
             body.interpolation = RigidbodyInterpolation.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-            for (int i = 0; i < 3; i++)
+            GameObject ballSkin = Prop(game, "CourtBall", ball.transform, Vector3.zero, 0, "Pebbled leather skin");
+            if (ballSkin != null)
             {
-                var seam = Ring("Ball seam", ball.transform, Vector3.zero, .501f, .022f, new Color(.13f, .075f, .04f), false);
-                seam.transform.localRotation = Quaternion.Euler(i == 0 ? 0 : 90, i == 2 ? 90 : 0, 0);
+                // The primitive stays as the collider. The model is already BallRadius * 2 across, so it
+                // has to undo the scale the sphere carries.
+                ball.GetComponent<Renderer>().enabled = false;
+                ballSkin.transform.localScale = Vector3.one / (BasketballRules.BallRadius * 2);
+            }
+            else
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    var seam = Ring("Ball seam", ball.transform, Vector3.zero, .501f, .022f, new Color(.13f, .075f, .04f), false);
+                    seam.transform.localRotation = Quaternion.Euler(i == 0 ? 0 : 90, i == 2 ? 90 : 0, 0);
+                }
             }
             var trail = ball.AddComponent<TrailRenderer>();
             trail.time = .20f;
@@ -267,9 +315,26 @@ namespace MiaCourt
             for (int j = 1; j <= 6; j++) Ring("Net loop", h, Vector3.up * (3.04f-j*.13f), Mathf.Lerp(.6f,.32f,j/6f), .013f, net.color, false);
         }
 
-        static void BuildFence(Transform root)
+        static void BuildFence(Transform root, MiaBasketballGame game)
         {
             Box("Perimeter wall", root, new Vector3(0,.3f,8.2f), new Vector3(33,.6f,.30f),wood);
+            // Twelve 2.73 m panels stand on the kerb and cover the sideline the wire mesh used to span.
+            bool panelled = false;
+            for (int i = 0; i < 12; i++)
+                panelled |= Prop(game, "CourtFence", root, new Vector3((i - 5.5f) * 2.728f, .6f, 8.2f), 0, "Chain link panel") != null;
+            if (!panelled) BuildWireFence(root);
+            // Invisible sideline containment lets rebounds remain recoverable.
+            foreach (int sign in new[] { -1, 1 })
+            {
+                var wall = Box("Ball containment",root,new Vector3(sign*13.5f,2,0),new Vector3(.2f,4,15),steel);
+                wall.GetComponent<Renderer>().enabled = false;
+                wall = Box("Ball containment",root,new Vector3(0,2,sign*7.2f),new Vector3(27,4,.2f),steel);
+                wall.GetComponent<Renderer>().enabled = false;
+            }
+        }
+
+        static void BuildWireFence(Transform root)
+        {
             for (int x = -16; x <= 16; x += 4)
                 Box("Fence post",root,new Vector3(x,1.55f,8.2f),new Vector3(.08f,2.6f,.08f),steel,false);
             foreach (float y in new[] { .65f, 2.8f })
@@ -283,18 +348,12 @@ namespace MiaCourt
                     Line("Chain link mesh",root,new[]{new Vector3(startX,.68f,8.2f),new Vector3(endX,2.75f,8.2f)},.010f,steel);
                 }
             }
-            // Invisible sideline containment lets rebounds remain recoverable.
-            foreach (int sign in new[] { -1, 1 })
-            {
-                var wall = Box("Ball containment",root,new Vector3(sign*13.5f,2,0),new Vector3(.2f,4,15),steel);
-                wall.GetComponent<Renderer>().enabled = false;
-                wall = Box("Ball containment",root,new Vector3(0,2,sign*7.2f),new Vector3(27,4,.2f),steel);
-                wall.GetComponent<Renderer>().enabled = false;
-            }
         }
 
-        static void BuildBench(Transform root, float x)
+        static void BuildBench(Transform root, MiaBasketballGame game, float x)
         {
+            // The model carries its backrest at local +X, so -90 degrees turns the seat toward the court.
+            if (Prop(game, "CourtBench", root, new Vector3(x, 0, 7.5f), -90, "Courtside bench") != null) return;
             Box("Concrete bench",root,new Vector3(x,.56f,7.5f),new Vector3(3.2f,.16f,.7f),wood);
             foreach (float offset in new[] { -1.2f,1.2f })
                 Box("Bench leg",root,new Vector3(x+offset,.25f,7.5f),new Vector3(.24f,.5f,.6f),wood);

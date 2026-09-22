@@ -1,0 +1,86 @@
+[
+  {
+    "prop": "CourtBall",
+    "name": "籃球",
+    "source": "CourtBall.glb",
+    "triangles": 2878,
+    "source_triangles": 2878,
+    "vertices": 2028,
+    "size": [
+      0.4,
+      0.4,
+      0.402
+    ],
+    "textures": "2048x2048 base colour and normal maps, imported at 1024."
+  },
+  {
+    "prop": "CourtFence",
+    "name": "圍籬",
+    "source": "CourtFence.glb",
+    "triangles": 20432,
+    "source_triangles": 1937306,
+    "vertices": 21104,
+    "size": [
+      2.728,
+      3.0,
+      0.198
+    ],
+    "textures": "2048x2048 base colour and normal maps, imported at 1024."
+  },
+  {
+    "prop": "CourtBench",
+    "name": "場邊長椅",
+    "source": "CourtBench.glb",
+    "triangles": 15912,
+    "source_triangles": 1955340,
+    "vertices": 13312,
+    "size": [
+      0.934,
+      0.92,
+      1.317
+    ],
+    "textures": "2048x2048 base colour and normal maps, imported at 1024."
+  },
+  {
+    "prop": "CourtFloodlight",
+    "name": "球場燈柱",
+    "source": "CourtFloodlight.glb",
+    "triangles": 9928,
+    "source_triangles": 1227217,
+    "vertices": 7374,
+    "size": [
+      1.101,
+      6.0,
+      1.013
+    ],
+    "textures": "2048x2048 base colour and normal maps, imported at 1024."
+  },
+  {
+    "prop": "CourtTrashBin",
+    "name": "垃圾桶",
+    "source": "CourtTrashBin.glb",
+    "triangles": 11292,
+    "source_triangles": 1860262,
+    "vertices": 9235,
+    "size": [
+      0.66,
+      0.9,
+      0.659
+    ],
+    "textures": "2048x2048 base colour and normal maps, imported at 1024."
+  },
+  {
+    "prop": "CourtScooter",
+    "name": "機車",
+    "source": "CourtScooter.glb",
+    "triangles": 8000,
+    "source_triangles": 1972751,
+    "vertices": 7234,
+    "size": [
+      1.8,
+      1.414,
+      0.881
+    ],
+    "textures": "2048x2048 base colour and normal maps, imported at 1024."
+  }
+]

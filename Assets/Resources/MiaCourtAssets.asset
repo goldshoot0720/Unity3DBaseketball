@@ -19,10 +19,8 @@ MonoBehaviour:
   - {fileID: 919132149155446097, guid: 901f50c8b4f00be4faf0ab88a83bb9f3, type: 3}
   - {fileID: 919132149155446097, guid: fb54b4be3fd27dc4a837dbded5f46ad6, type: 3}
   - {fileID: 919132149155446097, guid: 8d6a4a7cb7b9c9f41b11ca6f49f467b6, type: 3}
-  - {fileID: 919132149155446097, guid: 5e3a24710ccdf84408fb8f8d3b919f1c, type: 3}
-  - {fileID: 919132149155446097, guid: 04bc7be89862970469eb1083dd1adf9c, type: 3}
-  - {fileID: 919132149155446097, guid: 827dbcf141c29674d9c867e87779b87d, type: 3}
   - {fileID: 919132149155446097, guid: c150e458df2217d40a3cf4a1f53d8b3e, type: 3}
+  - {fileID: 919132149155446097, guid: 096a321bfdba49f7a2e7c14e1d7a8161, type: 3}
   characterTextures:
   - {fileID: 2800000, guid: be3d4a37636687743b1e8f4010d9b3bd, type: 3}
   - {fileID: 2800000, guid: e10af10c4d32d794e9ca5464fc2958fd, type: 3}
@@ -30,10 +28,29 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 1f43dc46decfabd4b8447ae3fa15b0a8, type: 3}
   - {fileID: 2800000, guid: 4b6a5e80d9a874f41bb1127ca55930b6, type: 3}
   - {fileID: 2800000, guid: dc1ad4a8322e2004497f04242cb7b380, type: 3}
-  - {fileID: 2800000, guid: 6802c82b4aa767f4d95895dc5d493818, type: 3}
-  - {fileID: 2800000, guid: 935dafee18508fa468b251d0c36574d8, type: 3}
-  - {fileID: 2800000, guid: 25b1943422a3dc3438a1af847e08f1ec, type: 3}
   - {fileID: 2800000, guid: 02f36968fca839f4bb5fca6ad7f8a13d, type: 3}
+  - {fileID: 2800000, guid: 81c29c9968aa492d8173f626fc3b02dd, type: 3}
+  propModels:
+  - {fileID: 919132149155446097, guid: 1f95d34dfbb9344eeaeed991afffb80b, type: 3}
+  - {fileID: 919132149155446097, guid: 7c79b6e92ab87414dbb2fc66c5e82177, type: 3}
+  - {fileID: 919132149155446097, guid: c2bca6d9228964a1eb2f41c4a787bef2, type: 3}
+  - {fileID: 919132149155446097, guid: d882180f66ec84966825f462d451d680, type: 3}
+  - {fileID: 919132149155446097, guid: d1cd33362d6744c6894653eac9416f21, type: 3}
+  - {fileID: 919132149155446097, guid: 88c85ce17010546f3872b4b94d16dfd7, type: 3}
+  propTextures:
+  - {fileID: 2800000, guid: fb12938fb76da428298d74655df112e6, type: 3}
+  - {fileID: 2800000, guid: 3b433c5a16b6a4256adbc6a97af2f6db, type: 3}
+  - {fileID: 2800000, guid: d59dcbf62ceec42ff81b4a38423fd9c9, type: 3}
+  - {fileID: 2800000, guid: 8357d7637cfb54306a47db404bb79228, type: 3}
+  - {fileID: 2800000, guid: 16a0cfa90d43248b08fdff53a3532ff6, type: 3}
+  - {fileID: 2800000, guid: f4cc8135276494ba3a967075f4b76c53, type: 3}
+  propNormals:
+  - {fileID: 2800000, guid: 04003da679ea9438aa750a52e25eadde, type: 3}
+  - {fileID: 2800000, guid: 0638ab3ce62bd4347a12fd48e045ba40, type: 3}
+  - {fileID: 2800000, guid: 51acdee715fb94d9ba1b271eccb19eef, type: 3}
+  - {fileID: 2800000, guid: 397f1e1cbbb464b75b7697a411742af1, type: 3}
+  - {fileID: 2800000, guid: 9205cd302166f40adba18195c68195d4, type: 3}
+  - {fileID: 2800000, guid: d38394c87797e4d85913d8870c575a5a, type: 3}
   miaByBy: {fileID: 919132149155446097, guid: 0ccc827e2cdb9ee428bd3fcb40ce7360, type: 3}
   miaBuBu: {fileID: 919132149155446097, guid: 568f37590b28f3042b9640e9847fc91f, type: 3}
   guguGaga: {fileID: 919132149155446097, guid: 771fa15a049a12345bf193f9e7ca9fbb, type: 3}

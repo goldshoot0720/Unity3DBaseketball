@@ -26,9 +26,21 @@ namespace MiaCourt.Editor
             // Batch runs drive setup explicitly through -executeMethod; racing them here only hides the real error.
             if (Application.isBatchMode) return;
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
-            if (File.Exists(MiaProjectSetup.ScenePath) || !File.Exists(ByByModel)) return;
+            if (!File.Exists(ByByModel)) return;
+            // A character swap changes both the roster length and the sub-asset ids inside each FBX,
+            // so a scene on disk is not proof the court assets still point at real models.
+            if (File.Exists(MiaProjectSetup.ScenePath) && MiaProjectSetup.RosterIsWired()) return;
             try { MiaProjectSetup.Configure(); }
             catch (Exception error) { Debug.LogException(error); }
+        }
+
+        [MenuItem("Mia Court/Play local test")]
+        public static void StartLocalTest()
+        {
+            if (EditorApplication.isPlaying) return;
+            if (!UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+            UnityEditor.SceneManagement.EditorSceneManager.OpenScene(MiaProjectSetup.ScenePath);
+            EditorApplication.isPlaying = true;
         }
 
         // Only these fixed, project-local commands are supported; this is not a shell bridge.
@@ -46,12 +58,12 @@ namespace MiaCourt.Editor
                 else if (command == "android") MiaProjectSetup.BuildAndroid();
                 else if (command == "webgl") MiaProjectSetup.BuildWebGL();
                 else if (command == "validate") { MiaProjectSetup.ValidateSettings(); ValidateRules(); }
-                else if (command == "play") EditorApplication.isPlaying = true;
+                else if (command == "play") StartLocalTest();
                 else if (command == "stop") EditorApplication.isPlaying = false;
                 else if (command == "smoke")
                 {
                     SessionState.SetBool("MiaCourt.Smoke", true);
-                    EditorApplication.isPlaying = true;
+                    StartLocalTest();
                 }
                 else throw new InvalidOperationException("Unknown MiaEditor command.");
             }
@@ -76,12 +88,47 @@ namespace MiaCourt.Editor
                 if (importer != null)
                 {
                     importer.materialImportMode = ModelImporterMaterialImportMode.None;
+                    // The supplied models carry a Mixamo skeleton. Building the humanoid avatar here
+                    // costs nothing at runtime while no Animator is attached, and it is what any future
+                    // retargeted clip needs. Motion stays procedural, so no clip is imported.
+                    importer.animationType = ModelImporterAnimationType.Human;
+                    importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
                     importer.importAnimation = false;
                     importer.isReadable = false;
                     importer.SaveAndReimport();
                 }
                 ConfigureTexture(path + "_BaseColor.png");
             }
+            foreach (string prop in MiaCourtAssets.PropIds)
+            {
+                string path = "Assets/Art/Environment/Props/" + prop + "/" + prop;
+                var importer = AssetImporter.GetAtPath(path + ".obj") as ModelImporter;
+                if (importer != null)
+                {
+                    // The props are static meshes; CourtBuilder assigns their material in code.
+                    importer.materialImportMode = ModelImporterMaterialImportMode.None;
+                    importer.importNormals = ModelImporterNormals.Calculate;
+                    importer.normalSmoothingAngle = 45;
+                    importer.importAnimation = false;
+                    importer.isReadable = false;
+                    importer.SaveAndReimport();
+                }
+                ConfigurePropTexture(path + "_BaseColor.png", false);
+                ConfigurePropTexture(path + "_Normal.png", true);
+            }
+        }
+
+        /// <summary>Prop maps wrap around a mesh, so unlike the backdrop photographs they keep mipmaps.</summary>
+        static void ConfigurePropTexture(string path, bool normalMap)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null) return;
+            importer.textureType = normalMap ? TextureImporterType.NormalMap : TextureImporterType.Default;
+            importer.maxTextureSize = 1024;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.mipmapEnabled = true;
+            importer.SaveAndReimport();
         }
 
         static void ConfigureTexture(string path)
@@ -184,14 +231,23 @@ namespace MiaCourt.Editor
                 Bounds placed = renderers[0].bounds;
                 foreach (Renderer r in renderers) placed.Encapsulate(r.bounds);
 
-                // CatPlayer.Animate assigns visual.localRotation outright every frame, so anything the
-                // importer baked into the model root's rotation is lost the moment the game runs.
-                model.transform.localRotation = Quaternion.Euler(0, 180, 0);
+                // CatPlayer.Animate composes its facing with the model root's imported rotation, so
+                // this reproduces the rest pose the game actually shows.
+                model.transform.localRotation = Quaternion.Euler(0, 180, 0) * source.transform.localRotation;
                 Bounds animated = renderers[0].bounds;
                 foreach (Renderer r in renderers) animated.Encapsulate(r.bounds);
 
+                // The models carry a Mixamo skeleton and import as Humanoid. Nothing plays a clip
+                // yet, so a silently broken avatar would only surface the day one is retargeted.
+                Avatar avatar = null;
+                foreach (UnityEngine.Object sub in AssetDatabase.LoadAllAssetsAtPath(path))
+                    if (sub is Avatar found) avatar = found;
+
                 lines.AppendLine(character + ":");
-                lines.AppendLine("  renderers      " + renderers.Length);
+                lines.AppendLine("  renderers      " + renderers.Length + "  " +
+                    (renderers[0] is SkinnedMeshRenderer skinned ? "skinned, " + skinned.bones.Length + " bones" : "static"));
+                lines.AppendLine("  avatar         " + (avatar == null ? "none"
+                    : (avatar.isHuman ? "humanoid" : "generic") + (avatar.isValid ? ", valid" : ", INVALID")));
                 lines.AppendLine("  prefab rot     " + source.transform.localRotation.eulerAngles);
                 lines.AppendLine("  prefab scale   " + source.transform.localScale);
                 lines.AppendLine("  measured size  " + bounds.size + "  centre " + bounds.center);
@@ -228,6 +284,11 @@ namespace MiaCourt.Editor
             check(BasketballRules.ReleaseQuality(.68f) > .999f, "perfect release");
             check(BasketballRules.ReleaseQuality(0) < .01f, "early release penalty");
             check(BasketballRules.ReleaseQuality(1) < .2f, "late release penalty");
+            check(BasketballRules.ShotWindow(Vector3.zero, hoop) == BasketballRules.LongShotWindow, "three point attempts aim for three seconds");
+            check(BasketballRules.ShotWindow(new Vector3(8, 0, 0), hoop) == BasketballRules.CloseShotWindow, "close attempts aim for one and a half seconds");
+            check(BasketballRules.SweepCharge(0) < .001f && BasketballRules.SweepCharge(BasketballRules.ChargeSweepSeconds) > .999f &&
+                BasketballRules.SweepCharge(BasketballRules.ChargeSweepSeconds * 2f) < .001f, "shot meter sweeps out and back");
+            check(BasketballRules.CloseShotWindow > BasketballRules.ChargeSweepSeconds, "the shortest window still crosses the green zone");
             Vector3 clamped = BasketballRules.ClampToCourt(new Vector3(100, 8, -100));
             check(clamped.x < BasketballRules.HalfLength && clamped.z > -BasketballRules.HalfWidth && clamped.y == 0, "court boundaries");
             Directory.CreateDirectory("Documentation/Validation");

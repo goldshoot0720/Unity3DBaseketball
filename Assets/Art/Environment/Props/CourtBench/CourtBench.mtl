@@ -1,0 +1,8 @@
+# https://github.com/mikedh/trimesh
+
+newmtl tripo_mat_52130df5-1f02-4f39-8f9a-c4403c2835c0
+Ka 0.40000000 0.40000000 0.40000000
+Kd 0.40000000 0.40000000 0.40000000
+Ks 0.40000000 0.40000000 0.40000000
+Ns 1.00000000
+map_Kd CourtBench_BaseColor.png

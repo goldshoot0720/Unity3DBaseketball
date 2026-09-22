@@ -1,5 +1,9 @@
 """Convert the supplied GLBs into game-ready FBX assets with Blender 5.x.
 
+Legacy. The roster it names was retired on 2026-09-22 and the current characters ship as
+Mixamo-rigged FBX, installed with Tools/prepare_rigged_characters.py instead. Kept for the
+next batch that arrives as GLB.
+
 Run: blender --background --python Tools/prepare_characters.py
      blender --background --python Tools/prepare_characters.py -- TeethMei3D FishMei
 Sources remain unmodified. This is a reproducible asset conversion, not a rig.

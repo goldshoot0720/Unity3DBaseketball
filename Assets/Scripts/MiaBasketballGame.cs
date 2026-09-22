@@ -35,8 +35,20 @@ namespace MiaCourt
         public float lastQuality;
         public int lastShotPoints;
         public int steals;
-        public bool challenge;
+        /// <summary>Easy, normal or hard: the shooting odds and how hard the computer plays.</summary>
+        public CourtDifficulty difficulty = CourtDifficulty.Normal;
+        public DifficultyTuning Tuning => DifficultyTuning.For(difficulty);
+        public string DifficultyName => DifficultyTuning.LabelFor(difficulty);
+        /// <summary>Home screen choice: a single match, or the eight-character knockout.</summary>
+        public bool cupMode;
+        /// <summary>The cup in progress, or null for a single match. Runtime only, never serialized.</summary>
+        [System.NonSerialized] public CupBracket cup;
+        public bool InCup => cup != null;
+        public bool CupFinished => cup != null && cup.round == CupRound.Over;
+        public string CupRoundName => cup != null ? cup.NextMatchName() : "";
         public bool IsBuzzerShot => buzzerShot;
+        /// <summary>A match is over the moment either side gets there, whatever the clock says.</summary>
+        public bool WinningScoreReached => scores[0] >= BasketballRules.WinningScore || scores[1] >= BasketballRules.WinningScore;
         public bool ShotInFlight => shotLive;
         public int BestScore => PlayerPrefs.GetInt("MiaCourt.BestScore", 0);
         public bool StealInRange
@@ -51,11 +63,11 @@ namespace MiaCourt
         }
 
         float chargeAge;
+        float chargeWindow = BasketballRules.LongShotWindow;
         float looseAge;
         float pickupDelay;
         float scorePause;
         float aiThink;
-        float dribbleSoundAt;
         float matchAge;
         int nextPossession;
         int lastShooter = -1;
@@ -66,7 +78,9 @@ namespace MiaCourt
         Vector3 previousBall;
         Vector3 aiDirection;
         GameObject[] trajectory;
-        const float ChargeSpeed = .78f;
+        /// <summary>Seconds this shot may be aimed, fixed when the meter opens so it never shrinks under the shooter.</summary>
+        public float ChargeWindow => chargeWindow;
+        public float ChargeSecondsRemaining => Mathf.Max(0, chargeWindow - chargeAge);
         // A swipe sweeps over a moment rather than testing a single frame, so a steal does not
         // demand frame-perfect timing, and whiffing costs far less than landing one.
         const float ReachSeconds = .30f;
@@ -88,6 +102,8 @@ namespace MiaCourt
             sound = gameObject.AddComponent<CourtAudio>();
             hud = gameObject.AddComponent<CourtHUD>();
             hud.game = this;
+            difficulty = (CourtDifficulty)Mathf.Clamp(PlayerPrefs.GetInt("MiaCourt.Difficulty",(int)CourtDifficulty.Normal),
+                (int)CourtDifficulty.Easy,(int)CourtDifficulty.Hard);
             CreatePlayers();
             CreateTrajectory();
             ShowHome();
@@ -132,15 +148,34 @@ namespace MiaCourt
 
         public void SelectRosterSlot(int index)
         {
-            if (pickingOpponent) SelectOpponent(index);
+            // The cup draws its own opponents, so every pick there is a pick of you.
+            if (pickingOpponent && !cupMode) SelectOpponent(index);
             else SelectCharacter(index);
+        }
+
+        public void SetDifficulty(CourtDifficulty level)
+        {
+            if (State != MatchState.Home || difficulty == level) return;
+            difficulty = level;
+            PlayerPrefs.SetInt("MiaCourt.Difficulty",(int)level);
+            PlayerPrefs.Save();
+            sound.Play(CourtSound.Select);
+        }
+
+        public void SetCupMode(bool on)
+        {
+            if (State != MatchState.Home || cupMode == on) return;
+            cupMode = on;
+            pickingOpponent = false;
+            sound.Play(CourtSound.Select);
         }
 
         public void CycleSelection(int delta)
         {
             if (State != MatchState.Home || delta == 0) return;
-            int blocked = pickingOpponent ? selectedCharacter : selectedOpponent;
-            int current = pickingOpponent ? selectedOpponent : selectedCharacter;
+            bool opponentPick = pickingOpponent && !cupMode;
+            int blocked = opponentPick ? selectedCharacter : selectedOpponent;
+            int current = opponentPick ? selectedOpponent : selectedCharacter;
             int next = current;
             int count = MiaCourtAssets.CharacterCount;
             for (int step = 0; step < count; step++)
@@ -181,6 +216,7 @@ namespace MiaCourt
         {
             Time.timeScale = 1;
             State = MatchState.Home;
+            cup = null;
             charging = false;
             messageTime = 0;
             scorePause = 0;
@@ -191,6 +227,42 @@ namespace MiaCourt
             cameraRig.SetView(1);
             cameraRig.Snap();
             SetTrajectory(false);
+        }
+
+        /// <summary>What the home screen's start button does: one match, or the first cup tie.</summary>
+        public void StartSelected()
+        {
+            if (State != MatchState.Home) return;
+            if (cupMode) StartCup();
+            else { cup = null; StartMatch(); }
+        }
+
+        public void StartCup()
+        {
+            cup = new CupBracket();
+            cup.Begin(selectedCharacter);
+            StartCupMatch();
+        }
+
+        /// <summary>Walks out for whichever tie the bracket has the player in.</summary>
+        void StartCupMatch()
+        {
+            CupTie tie = cup != null ? cup.PlayerTie() : null;
+            if (tie == null) { ShowHome(); return; }
+            string round = cup.NextMatchName();
+            selectedOpponent = tie.Other(selectedCharacter);
+            ApplyCharacters();
+            StartMatch();
+            ShowMessage(round + " · 對手 " + MiaCourtAssets.NameFor(selectedOpponent), CourtBuilder.Mint, 3.5f);
+        }
+
+        /// <summary>The result screen's primary button: next tie, a fresh cup, or a rematch.</summary>
+        public void ContinueAfterResult()
+        {
+            if (State != MatchState.Result) return;
+            if (cup == null) { StartMatch(); return; }
+            if (cup.round == CupRound.Over) { StartCup(); return; }
+            StartCupMatch();
         }
 
         public void StartMatch()
@@ -229,6 +301,7 @@ namespace MiaCourt
 
         public void GiveBall(int team)
         {
+            foreach (CatPlayer player in players) player.Gathering = false;
             holder = team;
             if (!ballBody.isKinematic) { ballBody.linearVelocity = Vector3.zero; ballBody.angularVelocity = Vector3.zero; }
             ballBody.isKinematic = true;
@@ -261,8 +334,11 @@ namespace MiaCourt
             if (Input.GetKeyDown(KeyCode.M)) sound.ToggleMute();
             if (State == MatchState.Home)
             {
-                if (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) ||
-                    Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+                if (Input.GetKeyDown(KeyCode.C)) SetCupMode(!cupMode);
+                if (Input.GetKeyDown(KeyCode.N))
+                    SetDifficulty((CourtDifficulty)(((int)difficulty + 1) % 3));
+                if (!cupMode && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow) ||
+                    Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)))
                     pickingOpponent = !pickingOpponent;
                 if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A)) CycleSelection(-1);
                 if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D)) CycleSelection(1);
@@ -273,7 +349,7 @@ namespace MiaCourt
                 if (MiaCourtAssets.CharacterCount > 9 &&
                     (Input.GetKeyDown(KeyCode.Alpha0) || Input.GetKeyDown(KeyCode.Keypad0)))
                     SelectRosterSlot(9);
-                if (Input.GetKeyDown(KeyCode.Return)) StartMatch();
+                if (Input.GetKeyDown(KeyCode.Return)) StartSelected();
                 foreach (CatPlayer p in players) p.Animate(Time.deltaTime, p.team == holder, true);
                 UpdateHeldBall();
                 UpdateMarkers();
@@ -282,7 +358,7 @@ namespace MiaCourt
             if (Input.GetKeyDown(KeyCode.Escape)) TogglePause();
             if (State == MatchState.Result)
             {
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.R)) StartMatch();
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.R)) ContinueAfterResult();
                 return;
             }
             if (State != MatchState.Playing) return;
@@ -304,7 +380,8 @@ namespace MiaCourt
                 scorePause -= dt;
                 if (scorePause <= 0)
                 {
-                    if (remaining <= 0) FinishMatch();
+                    // The winning basket still gets its moment before the result screen takes over.
+                    if (remaining <= 0 || WinningScoreReached) FinishMatch();
                     else ResetPossession(nextPossession);
                 }
                 return;
@@ -351,30 +428,49 @@ namespace MiaCourt
             bool clickCourt = Input.GetMouseButtonDown(0) && !hud.PointerOverButton();
             if (holder == 0)
             {
-                if (!charging && (Input.GetKeyDown(KeyCode.Space) || clickCourt))
-                {
-                    charging = true;
-                    chargeAge = 0;
-                    players[0].FaceHoop();
-                }
+                if (!charging && (Input.GetKeyDown(KeyCode.Space) || clickCourt)) BeginCharge();
                 if (charging)
                 {
-                    chargeAge += dt;
-                    charge = Mathf.PingPong(chargeAge*ChargeSpeed,1f);
-                    if (!Input.GetKey(KeyCode.Space) && !Input.GetMouseButton(0)) ReleaseShot(0,charge);
+                    AdvanceCharge(dt);
+                    if (charging && !Input.GetKey(KeyCode.Space) && !Input.GetMouseButton(0)) ReleaseShot(0,charge);
                 }
             }
             else if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.E) || clickCourt) TryDefense(0);
+        }
+
+        /// <summary>Opens the sweeping shot meter and locks in how long this spot is allowed to aim.</summary>
+        public void BeginCharge()
+        {
+            if (charging || holder != 0 || State != MatchState.Playing || countdown > 0) return;
+            charging = true;
+            chargeAge = 0;
+            charge = 0;
+            chargeWindow = BasketballRules.ShotWindow(players[0].transform.position, BasketballRules.HoopFor(0));
+            players[0].Gathering = true;
+            players[0].FaceHoop();
+        }
+
+        public void AdvanceCharge(float dt)
+        {
+            if (!charging || holder != 0 || State != MatchState.Playing || countdown > 0) return;
+            chargeAge = Mathf.Min(chargeWindow, chargeAge + Mathf.Max(0, dt));
+            charge = BasketballRules.SweepCharge(chargeAge);
+            if (chargeAge >= chargeWindow)
+            {
+                ReleaseShot(0, charge);
+                ShowMessage("拖太久 · 倉促出手", CourtBuilder.Coral, 1.5f);
+            }
         }
 
         void UpdateAI(float dt)
         {
             CatPlayer ai = players[1];
             CatPlayer human = players[0];
+            DifficultyTuning tuning = Tuning;
             aiThink -= dt;
             if (aiThink <= 0)
             {
-                aiThink = challenge ? .12f : .23f;
+                aiThink = tuning.thinkInterval;
                 Vector3 destination;
                 if (holder == 1)
                 {
@@ -382,9 +478,9 @@ namespace MiaCourt
                     if (Vector3.Distance(ai.transform.position,human.transform.position) < 2.1f)
                         destination.z = human.transform.position.z > ai.transform.position.z ? -3.8f : 3.8f;
                     float range = Vector3.Distance(ai.transform.position,BasketballRules.HoopFor(1));
-                    if (ai.possessionAge > (challenge?2.8f:3.8f) && range < 7.8f)
+                    if (ai.possessionAge > tuning.patience && range < 7.8f)
                     {
-                        ReleaseShot(1,Random.Range(challenge?.58f:.48f,challenge?.78f:.88f));
+                        ReleaseShot(1,Random.Range(tuning.aimLow,tuning.aimHigh));
                         aiDirection = Vector3.zero;
                         return;
                     }
@@ -396,7 +492,7 @@ namespace MiaCourt
                     destination = human.transform.position + towardHoop.normalized * (charging?1.05f:1.7f);
                     if (ai.actionCooldown <= 0 && pickupDelay <= 0 && Vector3.Distance(ai.transform.position,human.transform.position)<1.55f)
                     {
-                        if (Random.value < (challenge?.65f:.28f)) TryDefense(1);
+                        if (Random.value < tuning.stealChance) TryDefense(1);
                         else ai.actionCooldown = 1.4f;
                     }
                 }
@@ -409,7 +505,7 @@ namespace MiaCourt
                 diff.y = 0;
                 aiDirection = diff.magnitude < .20f ? Vector3.zero : diff.normalized;
             }
-            ai.Move(aiDirection,false,dt*(challenge?1.08f:.92f));
+            ai.Move(aiDirection,false,dt*tuning.speed);
         }
 
         void SeparatePlayers()
@@ -429,7 +525,9 @@ namespace MiaCourt
             if (actor.actionCooldown > 0 || actor.reach > 0) return;
             actor.reach = ReachSeconds;
             actor.actionCooldown = ReachSeconds + ReachRecovery;
-            actor.Jump(.62f);   // contest is an all-out jump
+            bool block = (holder < 0 && shotLive) || (holder == 1-team && players[1-team].Gathering);
+            Vector3 target = holder >= 0 ? players[holder].transform.position : ballBody.position;
+            actor.Defend(block, target);
         }
 
         void ResolveReach(float dt)
@@ -439,7 +537,7 @@ namespace MiaCourt
                 CatPlayer actor = players[team];
                 if (actor.reach <= 0) continue;
                 actor.reach = Mathf.Max(0, actor.reach - dt);
-                if (holder == 1-team && pickupDelay <= 0 &&
+                if (!actor.IsBlocking && holder == 1-team && pickupDelay <= 0 &&
                     Vector3.Distance(actor.transform.position,players[1-team].transform.position) < StealReach)
                 {
                     actor.reach = 0;
@@ -448,7 +546,7 @@ namespace MiaCourt
                     ShowMessage(team == 0 ? "抄截成功！" : "球被搶走了，快回防！", team == 0 ? CourtBuilder.Mint : CourtBuilder.Coral,1.6f);
                     sound.Play(CourtSound.Steal);
                 }
-                else if (holder < 0 && Vector3.Distance(actor.transform.position+Vector3.up*2f,ballBody.position) < 1.6f)
+                else if (actor.IsBlocking && holder < 0 && shotLive && Vector3.Distance(actor.transform.position+Vector3.up*(2f+actor.jump),ballBody.position) < 1.6f)
                 {
                     actor.reach = 0;
                     ballBody.linearVelocity = new Vector3(team==0?3.5f:-3.5f,5,Random.Range(-2f,2f));
@@ -470,15 +568,24 @@ namespace MiaCourt
         {
             if (holder != team || State != MatchState.Playing || countdown > 0) return;
             CatPlayer actor = players[team];
-            Vector3 target = BasketballRules.HoopFor(team);
+            Vector3 hoop = BasketballRules.HoopFor(team);
             Vector3 from = ReleasePosition(actor);
             float quality = BasketballRules.ReleaseQuality(releaseCharge);
-            float error = quality >= .90f ? .015f : Mathf.Pow(1f-quality,1.5f)*3.9f;
+            shotPoints = BasketballRules.ShotValue(actor.transform.position,hoop);
+            // The difficulty sets the odds for a clean, unguarded release. A late release or a
+            // hand in the face drags them down from there, which is what the meter is for.
+            float odds = Tuning.Odds(team == 0,shotPoints) * Mathf.Lerp(.60f,1f,quality);
             Vector3 defender = players[1-team].transform.position-actor.transform.position;
-            if (defender.magnitude<1.7f && Vector3.Dot(defender.normalized,(target-actor.transform.position).normalized)>.5f)
-                error += .32f;
+            bool contested = defender.magnitude<1.7f &&
+                Vector3.Dot(defender.normalized,(hoop-actor.transform.position).normalized)>.5f;
+            if (contested) odds *= .62f;
+            bool make = Random.value < Mathf.Clamp01(odds);
+            // The outcome is settled here but still played out by the physics: a make is aimed
+            // well inside the ring, a miss at the ring itself, so the ball rattles off real
+            // geometry instead of being teleported through the net.
+            float spread = make ? Random.Range(0f,.26f) : Random.Range(.46f,.88f);
             float phase = attempts[team]*2.39996f+team*.7f;
-            target += new Vector3(Mathf.Cos(phase)*error,0,Mathf.Sin(phase)*error);
+            Vector3 target = hoop + new Vector3(Mathf.Cos(phase)*spread,0,Mathf.Sin(phase)*spread);
             holder = -1;
             ballBody.isKinematic = false;
             ballBody.detectCollisions = true;
@@ -491,20 +598,18 @@ namespace MiaCourt
             shotLive = true;
             scoredThisFlight = false;
             lastShooter = team;
-            shotPoints = BasketballRules.ShotValue(actor.transform.position,BasketballRules.HoopFor(team));
             looseAge = 0;
             pickupDelay = .75f;
             charging = false;
             attempts[team]++;
-            actor.FaceHoop();
-            actor.Jump(.55f);   // jump shot
+            actor.Shoot();
             SetTrajectory(false);
             sound.Play(CourtSound.Shot);
             if (team == 0)
             {
                 lastQuality = quality;
                 lastShotPoints = shotPoints;
-                ShowMessage(quality >= .90f ? "完美出手！" : quality >= .67f ? "漂亮的出手" : releaseCharge<.68f ? "出手太早" : "出手太晚",
+                ShowMessage(quality >= .90f ? "完美出手！" : quality >= .67f ? "漂亮的出手" : releaseCharge<.68f ? "還沒到綠區" : "過了綠區",
                     quality>=.90f?CourtBuilder.Mint:Color.white,1.5f);
             }
         }
@@ -537,6 +642,9 @@ namespace MiaCourt
             SetTrajectory(false);
             ShowMessage(players[team].displayName + (points == 3 ? " · 三分命中！" : " · 得分！"),team==0?CourtBuilder.Mint:CourtBuilder.Coral,2.3f);
             sound.Play(CourtSound.Score);
+            if (scores[team] >= BasketballRules.WinningScore)
+                ShowMessage(players[team].displayName + " 先馳 " + BasketballRules.WinningScore + " 分 · 比賽結束！",
+                    team == 0 ? CourtBuilder.Mint : CourtBuilder.Coral, 2.3f);
         }
 
         void UpdateLooseBall(float dt)
@@ -570,16 +678,10 @@ namespace MiaCourt
         {
             if (holder < 0) return;
             CatPlayer actor = players[holder];
-            Vector3 direction = State == MatchState.Home ? new Vector3(-.3f,0,-1) :
-                (actor.movement.sqrMagnitude>.2f ? actor.movement.normalized : new Vector3(holder==0?1:-1,0,0));
-            float bounce = charging ? 1.7f : .28f+Mathf.Abs(Mathf.Sin(Time.time*8.3f))*.96f;
-            ballBody.position = actor.transform.position+direction*.69f+Vector3.up*(bounce+actor.jump);
+            ballBody.position = actor.Dribble(Time.deltaTime, charging || (holder == 1 && actor.possessionAge > Tuning.gather));
             ballBody.transform.Rotate(75*Time.deltaTime,40*Time.deltaTime,10*Time.deltaTime,Space.World);
-            if (!charging && Time.time >= dribbleSoundAt && State == MatchState.Playing)
-            {
-                dribbleSoundAt = Time.time+.38f;
+            if (actor.DribbleImpact && State == MatchState.Playing)
                 sound.Play(CourtSound.Dribble,.32f);
-            }
         }
 
         void UpdateMarkers()
@@ -634,7 +736,7 @@ namespace MiaCourt
 
         public void FinishMatch()
         {
-            if (scores[0] == scores[1])
+            if (scores[0] == scores[1] && !WinningScoreReached)
             {
                 overtime = true;
                 buzzerShot = false;
@@ -653,6 +755,9 @@ namespace MiaCourt
             ballBody.isKinematic = true;
             ballTrail.emitting = false;
             if (scores[0] > BestScore) { PlayerPrefs.SetInt("MiaCourt.BestScore",scores[0]); PlayerPrefs.Save(); }
+            // The bracket only learns the result once the match is genuinely over, never on the
+            // tie that sends it to overtime.
+            if (cup != null && cup.round != CupRound.Over) cup.RecordPlayerResult(scores[0],scores[1]);
             sound.Play(CourtSound.Buzzer);
         }
 

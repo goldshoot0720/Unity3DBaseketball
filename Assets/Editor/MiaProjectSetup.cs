@@ -16,6 +16,18 @@ namespace MiaCourt.Editor
         const string RendererPath = "Assets/Settings/MiaCourtRenderer.asset";
         const string AssetsPath = "Assets/Resources/MiaCourtAssets.asset";
 
+        /// <summary>True when the court assets already resolve every model and texture in the roster.</summary>
+        public static bool RosterIsWired()
+        {
+            var assets = AssetDatabase.LoadAssetAtPath<MiaCourtAssets>(AssetsPath);
+            if (assets == null) return false;
+            if (assets.characterModels == null || assets.characterModels.Length != MiaCourtAssets.CharacterCount) return false;
+            if (assets.characterTextures == null || assets.characterTextures.Length != MiaCourtAssets.CharacterCount) return false;
+            for (int i = 0; i < MiaCourtAssets.CharacterCount; i++)
+                if (assets.characterModels[i] == null || assets.characterTextures[i] == null) return false;
+            return true;
+        }
+
         [MenuItem("Mia Court/Configure URP")]
         public static void Configure()
         {
@@ -85,6 +97,18 @@ namespace MiaCourt.Editor
             assets.byByTexture = assets.characterTextures[0];
             assets.buBuTexture = assets.characterTextures[1];
             assets.guguGagaTexture = assets.characterTextures[2];
+            assets.propModels = new GameObject[MiaCourtAssets.PropIds.Length];
+            assets.propTextures = new Texture2D[MiaCourtAssets.PropIds.Length];
+            assets.propNormals = new Texture2D[MiaCourtAssets.PropIds.Length];
+            for (int i = 0; i < MiaCourtAssets.PropIds.Length; i++)
+            {
+                string id = MiaCourtAssets.PropIds[i];
+                string path = "Assets/Art/Environment/Props/" + id + "/" + id;
+                // A missing prop is not fatal: CourtBuilder keeps a procedural stand-in for each one.
+                assets.propModels[i] = AssetDatabase.LoadAssetAtPath<GameObject>(path + ".obj");
+                assets.propTextures[i] = AssetDatabase.LoadAssetAtPath<Texture2D>(path + "_BaseColor.png");
+                assets.propNormals[i] = AssetDatabase.LoadAssetAtPath<Texture2D>(path + "_Normal.png");
+            }
             assets.leftView = Require<Texture2D>("Assets/Art/Environment/Taipei_Left.png");
             assets.centerView = Require<Texture2D>("Assets/Art/Environment/Taipei_Center.png");
             assets.rightView = Require<Texture2D>("Assets/Art/Environment/Taipei_Right.png");

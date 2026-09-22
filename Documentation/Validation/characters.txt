@@ -1,100 +1,88 @@
 MiaByBy3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.55, 0.98, 0.83)  centre (0.00, 0.49, 0.00)
-  applied scale  2.399692
-  placed size    (1.31, 2.35, 2.00)  centre (0.00, 1.18, 0.00)
-  placed feet Y  0   (want 0)
-  placed height  2.35   (want 2.35)
-  after Animate  (1.31, 2.00, 2.35)  height 1.996322   (want 2.35)
-MiaBuBu3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.61, 0.93, 0.98)  centre (0.00, 0.46, 0.00)
-  applied scale  2.532977
-  placed size    (1.55, 2.35, 2.48)  centre (0.00, 1.18, 0.00)
+  renderers      1  skinned, 28 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.49, 2.05, 1.18)  centre (-0.01, 0.87, 0.06)
+  applied scale  1.144473
+  placed size    (1.71, 2.35, 1.36)  centre (0.00, 1.18, 0.00)
   placed feet Y  1.192093E-07   (want 0)
   placed height  2.35   (want 2.35)
-  after Animate  (1.55, 2.48, 2.35)  height 2.479449   (want 2.35)
+  after Animate  (1.71, 2.35, 1.36)  height 2.35   (want 2.35)
+MiaBuBu3D:
+  renderers      1  skinned, 28 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.47, 2.08, 1.20)  centre (0.00, 0.87, 0.07)
+  applied scale  1.132129
+  placed size    (1.66, 2.35, 1.35)  centre (0.00, 1.18, 0.00)
+  placed feet Y  1.192093E-07   (want 0)
+  placed height  2.35   (want 2.35)
+  after Animate  (1.66, 2.35, 1.35)  height 2.35   (want 2.35)
 GuguGaga3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.83, 0.98, 0.55)  centre (0.00, 0.49, 0.00)
-  applied scale  2.398165
-  placed size    (1.99, 2.35, 1.33)  centre (0.00, 1.18, 0.00)
+  renderers      1  skinned, 52 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.40, 2.06, 0.74)  centre (0.00, 0.87, 0.06)
+  applied scale  1.141435
+  placed size    (1.60, 2.35, 0.85)  centre (0.00, 1.18, 0.00)
+  placed feet Y  0   (want 0)
+  placed height  2.35   (want 2.35)
+  after Animate  (1.60, 2.35, 0.85)  height 2.35   (want 2.35)
+YaMei3D:
+  renderers      1  skinned, 28 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.38, 2.02, 0.63)  centre (0.00, 0.88, 0.01)
+  applied scale  1.164303
+  placed size    (1.60, 2.35, 0.74)  centre (0.00, 1.18, 0.00)
+  placed feet Y  0   (want 0)
+  placed height  2.35   (want 2.35)
+  after Animate  (1.60, 2.35, 0.74)  height 2.35   (want 2.35)
+YuMei3D:
+  renderers      1  skinned, 40 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.44, 2.02, 0.60)  centre (0.00, 0.89, 0.05)
+  applied scale  1.162508
+  placed size    (1.67, 2.35, 0.69)  centre (0.00, 1.18, 0.00)
+  placed feet Y  0   (want 0)
+  placed height  2.35   (want 2.35)
+  after Animate  (1.67, 2.35, 0.69)  height 2.35   (want 2.35)
+FengBro3D:
+  renderers      1  skinned, 28 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.58, 2.05, 0.67)  centre (0.00, 0.87, -0.01)
+  applied scale  1.148798
+  placed size    (1.82, 2.35, 0.77)  centre (0.00, 1.18, 0.00)
+  placed feet Y  0   (want 0)
+  placed height  2.35   (want 2.35)
+  after Animate  (1.82, 2.35, 0.77)  height 2.35   (want 2.35)
+Tu3D:
+  renderers      1  skinned, 28 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.60, 2.05, 0.68)  centre (0.00, 0.88, 0.00)
+  applied scale  1.148728
+  placed size    (1.83, 2.35, 0.78)  centre (0.00, 1.18, 0.00)
   placed feet Y  -1.192093E-07   (want 0)
   placed height  2.35   (want 2.35)
-  after Animate  (1.99, 1.33, 2.35)  height 1.326275   (want 2.35)
-TeethMei3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.37, 0.98, 0.35)  centre (0.00, 0.49, 0.00)
-  applied scale  2.396271
-  placed size    (0.89, 2.35, 0.84)  centre (0.00, 1.18, 0.00)
+  after Animate  (1.83, 2.35, 0.78)  height 2.35   (want 2.35)
+DpskMusume3D:
+  renderers      1  skinned, 28 bones
+  avatar         humanoid, valid
+  prefab rot     (0.00, 0.00, 0.00)
+  prefab scale   (1.00, 1.00, 1.00)
+  measured size  (1.66, 2.01, 0.93)  centre (0.01, 0.89, -0.01)
+  applied scale  1.16741
+  placed size    (1.94, 2.35, 1.08)  centre (0.00, 1.18, 0.00)
   placed feet Y  0   (want 0)
   placed height  2.35   (want 2.35)
-  after Animate  (0.89, 0.84, 2.35)  height 0.8438258   (want 2.35)
-FishMei:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.32, 0.98, 0.25)  centre (0.00, 0.49, 0.00)
-  applied scale  2.397171
-  placed size    (0.76, 2.35, 0.61)  centre (0.00, 1.18, 0.00)
-  placed feet Y  0   (want 0)
-  placed height  2.35   (want 2.35)
-  after Animate  (0.76, 0.61, 2.35)  height 0.6058339   (want 2.35)
-Huang3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.37, 0.98, 0.33)  centre (0.00, 0.49, 0.00)
-  applied scale  2.398977
-  placed size    (0.89, 2.35, 0.79)  centre (0.00, 1.18, 0.00)
-  placed feet Y  0   (want 0)
-  placed height  2.35   (want 2.35)
-  after Animate  (0.89, 0.79, 2.35)  height 0.7891502   (want 2.35)
-XiaoTu3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.36, 0.98, 0.27)  centre (0.00, 0.49, 0.00)
-  applied scale  2.398306
-  placed size    (0.86, 2.35, 0.65)  centre (0.00, 1.18, 0.00)
-  placed feet Y  1.192093E-07   (want 0)
-  placed height  2.35   (want 2.35)
-  after Animate  (0.86, 0.65, 2.35)  height 0.651739   (want 2.35)
-FengHsin3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.35, 0.98, 0.24)  centre (0.00, 0.49, 0.00)
-  applied scale  2.396495
-  placed size    (0.84, 2.35, 0.56)  centre (0.00, 1.18, 0.00)
-  placed feet Y  0   (want 0)
-  placed height  2.35   (want 2.35)
-  after Animate  (0.84, 0.56, 2.35)  height 0.5635841   (want 2.35)
-HsinFeng3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.39, 0.98, 0.26)  centre (0.00, 0.49, 0.00)
-  applied scale  2.397664
-  placed size    (0.93, 2.35, 0.63)  centre (0.00, 1.18, 0.00)
-  placed feet Y  0   (want 0)
-  placed height  2.35   (want 2.35)
-  after Animate  (0.93, 0.63, 2.35)  height 0.6266839   (want 2.35)
-Tu3D:
-  renderers      1
-  prefab rot     (270.02, 0.00, 0.00)
-  prefab scale   (100.00, 100.00, 100.00)
-  measured size  (0.36, 0.98, 0.27)  centre (0.00, 0.49, 0.00)
-  applied scale  2.404155
-  placed size    (0.87, 2.35, 0.65)  centre (0.00, 1.18, 0.00)
-  placed feet Y  1.192093E-07   (want 0)
-  placed height  2.349999   (want 2.35)
-  after Animate  (0.87, 0.65, 2.35)  height 0.6538911   (want 2.35)
+  after Animate  (1.94, 2.35, 1.08)  height 2.35   (want 2.35)

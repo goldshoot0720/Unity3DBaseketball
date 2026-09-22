@@ -1,62 +1,106 @@
 [
   {
     "character": "MiaByBy3D",
-    "sourceTriangles": 1961311,
-    "gameTriangles": 78451,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "name": "喵白白",
+    "triangles": 34680,
+    "vertices": 17328,
+    "bones": 33,
+    "height": 1.892,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1469040,
+    "textureBytes": 3987810
   },
   {
     "character": "MiaBuBu3D",
-    "sourceTriangles": 1955496,
-    "gameTriangles": 78219,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "name": "喵布布",
+    "triangles": 34812,
+    "vertices": 17416,
+    "bones": 33,
+    "height": 1.906,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1472672,
+    "textureBytes": 4185925
   },
   {
     "character": "GuguGaga3D",
-    "sourceTriangles": 1921939,
-    "gameTriangles": 76877,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "name": "咕咕嘎嘎",
+    "triangles": 40202,
+    "vertices": 20065,
+    "bones": 65,
+    "height": 1.9,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1783904,
+    "textureBytes": 3483819
   },
   {
-    "character": "TeethMei3D",
-    "sourceTriangles": 1949395,
-    "gameTriangles": 77975,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "character": "YaMei3D",
+    "name": "牙妹",
+    "triangles": 38494,
+    "vertices": 19246,
+    "bones": 33,
+    "height": 1.891,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1517376,
+    "textureBytes": 3173612
   },
   {
-    "character": "FishMei",
-    "sourceTriangles": 1973404,
-    "gameTriangles": 78936,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "character": "YuMei3D",
+    "name": "魚妹",
+    "triangles": 35542,
+    "vertices": 17785,
+    "bones": 49,
+    "height": 1.896,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1567264,
+    "textureBytes": 3149924
   },
   {
-    "character": "Huang3D",
-    "sourceTriangles": 1958391,
-    "gameTriangles": 78335,
-    "animations": "Procedural root motion; source has no rig or animation."
-  },
-  {
-    "character": "XiaoTu3D",
-    "sourceTriangles": 1908284,
-    "gameTriangles": 76331,
-    "animations": "Procedural root motion; source has no rig or animation."
-  },
-  {
-    "character": "FengHsin3D",
-    "sourceTriangles": 1980721,
-    "gameTriangles": 79228,
-    "animations": "Procedural root motion; source has no rig or animation."
-  },
-  {
-    "character": "HsinFeng3D",
-    "sourceTriangles": 1966774,
-    "gameTriangles": 78670,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "character": "FengBro3D",
+    "name": "鋒兄",
+    "triangles": 32130,
+    "vertices": 16071,
+    "bones": 33,
+    "height": 1.895,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1336064,
+    "textureBytes": 3717063
   },
   {
     "character": "Tu3D",
-    "sourceTriangles": 1957508,
-    "gameTriangles": 78300,
-    "animations": "Procedural root motion; source has no rig or animation."
+    "name": "塗董",
+    "triangles": 33204,
+    "vertices": 16624,
+    "bones": 33,
+    "height": 1.9,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1375408,
+    "textureBytes": 3750548
+  },
+  {
+    "character": "DpskMusume3D",
+    "name": "深索娘",
+    "triangles": 38042,
+    "vertices": 18957,
+    "bones": 33,
+    "height": 1.897,
+    "rig": "Mixamo humanoid skeleton, bound skin.",
+    "animations": "None supplied; the FBX carries a single baked pose. Motion stays procedural.",
+    "textures": "One 2048x2048 base colour map, lifted out of the image the exporter embedded in the FBX. The embedded copy is then removed: materialImportMode is None, so Unity never reads it.",
+    "modelBytes": 1591584,
+    "textureBytes": 4126967
   }
 ]

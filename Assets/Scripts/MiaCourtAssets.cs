@@ -7,20 +7,27 @@ namespace MiaCourt
     {
         public static readonly string[] CharacterIds =
         {
-            "MiaByBy3D", "MiaBuBu3D", "GuguGaga3D",
-            "TeethMei3D", "FishMei", "Huang3D", "XiaoTu3D",
-            "FengHsin3D", "HsinFeng3D", "Tu3D"
+            "MiaByBy3D", "MiaBuBu3D", "GuguGaga3D", "YaMei3D",
+            "YuMei3D", "FengBro3D", "Tu3D", "DpskMusume3D"
         };
         public static readonly string[] CharacterNames =
         {
-            "喵白白", "喵布布", "咕咕嘎嘎",
-            "牙妹", "魚妹", "鋒兄", "小塗",
-            "鋒市", "鋒總", "塗董"
+            "喵白白", "喵布布", "咕咕嘎嘎", "牙妹",
+            "魚妹", "鋒兄", "塗董", "深索娘"
         };
-        public const int CharacterCount = 10;
+        public const int CharacterCount = 8;
+        /// <summary>Scene props converted from the supplied GLBs by Tools/prepare_props.py.</summary>
+        public static readonly string[] PropIds =
+        {
+            "CourtBall", "CourtFence", "CourtBench",
+            "CourtFloodlight", "CourtTrashBin", "CourtScooter"
+        };
 
         public GameObject[] characterModels;
         public Texture2D[] characterTextures;
+        public GameObject[] propModels;
+        public Texture2D[] propTextures;
+        public Texture2D[] propNormals;
         public GameObject miaByBy;
         public GameObject miaBuBu;
         public GameObject guguGaga;
@@ -53,6 +60,18 @@ namespace MiaCourt
             if (index == 1) return buBuTexture;
             if (index == 2) return guguGagaTexture;
             return byByTexture;
+        }
+
+        /// <summary>The prop mesh, or null when the court falls back to its procedural stand-in.</summary>
+        public GameObject PropFor(string id) => Lookup(propModels, id);
+        public Texture2D PropTextureFor(string id) => Lookup(propTextures, id);
+        public Texture2D PropNormalFor(string id) => Lookup(propNormals, id);
+
+        static T Lookup<T>(T[] table, string id) where T : Object
+        {
+            int index = System.Array.IndexOf(PropIds, id);
+            if (table == null || index < 0 || index >= table.Length) return null;
+            return table[index];
         }
 
         public static string NameFor(int index)
